@@ -12,7 +12,7 @@ if sdlDep.found()
    glewDep = dependency('glew')
    dependencies = [sdlDep, glewDep]
 else
-sdlIncDir = join_paths(WINDOWS_SDL_PATH, 'include')
+   sdlIncDir = join_paths(WINDOWS_SDL_PATH, 'include')
    sdlLibDir = join_paths(WINDOWS_SDL_PATH, 'lib', 'x64')
    glewIncDir = join_paths(WINDOWS_GLEW_PATH, 'include')
    glewLibDir = join_paths(WINDOWS_GLEW_PATH, 'lib', 'x64')
