@@ -1,4 +1,4 @@
-project('game', 'cpp')
+project('game', 'cpp', default_options : ['cpp_std=c++11', 'werror=true'])
 
 WINDOWS_SDL_PATH = join_paths(meson.source_root(),'SDL2-2.0.10')
 WINDOWS_GLEW_PATH = join_paths(meson.source_root(),'glew-2.1.0')
