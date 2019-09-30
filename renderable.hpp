@@ -22,16 +22,16 @@
 
 		void setupMesh() {
 			// create buffers/arrays
-			glGenVertexArrays(1, &VAO);
-			glGenBuffers(1, &VBO);
-			glGenBuffers(1, &EBO);
+			glGenVertexArrays(1, &this->VAO);
+			glGenBuffers(1, &this->VBO);
+			glGenBuffers(1, &this->EBO);
 
-			glBindVertexArray(VAO);
-			glBindBuffer(GL_ARRAY_BUFFER, VBO);
-			glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
+			glBindVertexArray(this->VAO);
+			glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
+			glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(Vertex), &this->vertices[0], GL_STATIC_DRAW);
 
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indices.size() * sizeof(unsigned int), &this->indices[0], GL_STATIC_DRAW);
 
 			glEnableVertexAttribArray(0);
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
@@ -41,8 +41,6 @@
 			// vertex texture coords
 			glEnableVertexAttribArray(2);
 			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
-
-			glBindVertexArray(0);
 		}
 
 	public:
@@ -55,8 +53,17 @@
 		void render() {
 			glBindVertexArray(this->VAO);
 			glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
-			glBindVertexArray(0);
 			glActiveTexture(GL_TEXTURE0);
+			glBindVertexArray(0);
+		}
+
+		void cleanUp() {
+			glDisableVertexAttribArray(0);
+			glDisableVertexAttribArray(1);
+			glDisableVertexAttribArray(2);
+			glDeleteVertexArrays(1, &this->VAO);
+			glDeleteBuffers(1, &this->VBO);
+			glDeleteBuffers(1, &this->EBO);
 		}
 	};
 
@@ -108,6 +115,10 @@
 					this->meshes.push_back(Mesh(vertices, indexes));
 				}
 			}
+		}
+
+		void cleanUp() {
+			for(auto & mesh: this->meshes) mesh.cleanUp();
 		}
 	};
 

@@ -9,6 +9,9 @@
 		int width = 640;
 		int height = 480;
 
+		Uint32 frameStart = 0;
+		Uint32 frameDuration = 0;
+
 		bool wireframe = false;
 
         SDL_Window * window = nullptr;
@@ -26,6 +29,7 @@
         float getAspectRatio() const;
 		void toggleWireframe();
         void resize(int width, int height);
+        float getLastFrameDuration() const;
         virtual ~Game();
     };
 
