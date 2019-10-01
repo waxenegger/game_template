@@ -1,51 +1,7 @@
 #include "render.hpp"
 
-Model::Model(std::vector<Vertex> vertices, std::vector<unsigned int> indices) {
-    this->vertices = vertices;
-    this->indices = indices;
-    this->init();
-}
-
-void Model::init() {
-    // create buffers/arrays
-    glGenVertexArrays(1, &this->VAO);
-    glGenBuffers(1, &this->VBO);
-    glGenBuffers(1, &this->EBO);
-
-    glBindVertexArray(this->VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
-    glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(Vertex), &this->vertices[0], GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indices.size() * sizeof(unsigned int), &this->indices[0], GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-    // vertex normals
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-    // vertex texture coords
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
-}
-
-void Model::render() {
-    glBindVertexArray(this->VAO);
-    glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
-    glActiveTexture(GL_TEXTURE0);
-    glBindVertexArray(0);
-}
-
-void Model::cleanUp() {
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
-    glDisableVertexAttribArray(2);
-    glDeleteVertexArrays(1, &this->VAO);
-    glDeleteBuffers(1, &this->VBO);
-    glDeleteBuffers(1, &this->EBO);
-}
-
-Model * Model::loadModelFromObjectFile(const std::string & file) {
+Model::Model(const std::string & file) {
+    this->id = file;
     Assimp::Importer importer;
 
     const aiScene *scene = importer.ReadFile(file.c_str(),
@@ -53,7 +9,7 @@ Model * Model::loadModelFromObjectFile(const std::string & file) {
 
     if (scene == nullptr) {
         std::cerr << importer.GetErrorString() << std::endl;
-        return nullptr;
+        return;
     }
 
     if (scene->HasMeshes()) {
@@ -76,9 +32,59 @@ Model * Model::loadModelFromObjectFile(const std::string & file) {
                     indexes.push_back(index);
                 }
             }
-            return new Model(vertices, indexes);
-        }
-    }
 
-    return nullptr;
+            this->vertices = vertices;
+            this->indices = indices;
+            this->loaded = true;
+        }
+    } else std::cerr << "Model does not contain meshes" << std::endl;
+}
+
+void Model::init() {
+    if (!this->loaded) return;
+
+    // create buffers/arrays
+    glGenVertexArrays(1, &this->VAO);
+    glGenBuffers(1, &this->VBO);
+    glGenBuffers(1, &this->EBO);
+
+    glBindVertexArray(this->VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
+    glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(Vertex), &this->vertices[0], GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indices.size() * sizeof(unsigned int), &this->indices[0], GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+    // vertex normals
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+    // vertex texture coords
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
+
+    this->initialized = true;
+}
+
+void Model::render() {
+    if (!this->initialized) return;
+
+    glBindVertexArray(this->VAO);
+    glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindVertexArray(0);
+}
+
+void Model::cleanUp() {
+    if (!this->initialized) return;
+
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(2);
+    glDeleteVertexArrays(1, &this->VAO);
+    glDeleteBuffers(1, &this->VBO);
+    glDeleteBuffers(1, &this->EBO);
+    this->initialized = false;
+    this->loaded = false;
 }

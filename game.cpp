@@ -72,9 +72,11 @@ void Game::run() {
     SDL_StartTextInput();
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
-    const std::unique_ptr<Model> object(
-            Model::loadModelFromObjectFile("/opt/projects/opengl/res/test.obj"));
-    if (object != nullptr) this->scene.push_back(Entity(*object.get()));
+    Model m("/opt/projects/opengl/res/test.obj");
+    if (m.hasBeenLoaded()) {
+        m.init();
+        this->scene.push_back(Entity(m));
+    }
 
     Shader shader("/opt/projects/opengl/res/test");
     shader.use();
