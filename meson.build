@@ -30,5 +30,6 @@ else
 
 endif
 
-executable('game', 'game.cpp', include_directories: includeDir, dependencies: dependencies) 
+src = [ 'model.cpp', 'entity.cpp', 'shader.cpp' ]
 
+executable('game', 'game.cpp', src, include_directories: includeDir, dependencies: dependencies) 

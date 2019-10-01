@@ -2,7 +2,7 @@
 #define GAME_HPP
 
     #include "includes.hpp"
-	#include "renderable.hpp"
+    #include "render.hpp"
 
     class Game {
     private:
@@ -17,7 +17,7 @@
         SDL_Window * window = nullptr;
         SDL_GLContext glContext = nullptr;
 
-        std::vector<Renderable> scene;
+        std::vector<Entity> scene;
 
         void clearScreen(float r, float g, float b, float a);
         void render();

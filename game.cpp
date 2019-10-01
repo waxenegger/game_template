@@ -1,4 +1,4 @@
-#include <game.hpp>
+#include "game.hpp"
 
 /*
  * Cleans Up Resources:
@@ -72,9 +72,9 @@ void Game::run() {
     SDL_StartTextInput();
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
-	Renderable obj;
-	obj.loadMeshFromObjectFile("/opt/projects/opengl/res/test.obj");
-    this->scene.push_back(obj);
+    const std::unique_ptr<Model> object(
+            Model::loadModelFromObjectFile("/opt/projects/opengl/res/test.obj"));
+    if (object != nullptr) this->scene.push_back(Entity(*object.get()));
 
     Shader shader("/opt/projects/opengl/res/test");
     shader.use();

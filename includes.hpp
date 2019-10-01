@@ -4,6 +4,7 @@
     #include <iostream>
 	#include <fstream>
     #include <ctype.h>
+    #include <memory>
 
     #include <SDL.h>
 
