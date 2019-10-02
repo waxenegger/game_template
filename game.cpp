@@ -72,14 +72,14 @@ void Game::run() {
     SDL_StartTextInput();
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
+    Shader shader("/opt/projects/opengl/res/test");
+    shader.use();
+
     Model m("/opt/projects/opengl/res/test.obj");
     if (m.hasBeenLoaded()) {
         m.init();
-        this->scene.push_back(Entity(m));
+        this->scene.push_back(Entity(m, shader));
     }
-
-    Shader shader("/opt/projects/opengl/res/test");
-    shader.use();
 
     glm::vec3 camPosition(-5.0f, 0.0f, -5.0f);
     glm::vec3 camDirection(0.0f, 0.0f, 0.0f);
@@ -164,7 +164,7 @@ void Game::run() {
         this->render();
     }
 
-    for (auto & renderable : this->scene) renderable.cleanUp();
+    for (auto & entity : this->scene) entity.cleanUp();
 
     SDL_StopTextInput();
 }
@@ -181,7 +181,7 @@ void Game::render() {
 
 	this->clearScreen(0, 0, 0, 0);
 
-	for (auto & renderable : this->scene) renderable.render();
+	for (auto & entity : this->scene) entity.render();
 
 	SDL_GL_SwapWindow(window);
 

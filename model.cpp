@@ -16,7 +16,7 @@ Model::Model(const std::string & file) {
         for (unsigned int m = 0; m < scene->mNumMeshes; m++) {
             const aiMesh * someMesh = scene->mMeshes[m];
             std::vector<Vertex> vertices;
-            std::vector<unsigned int> indexes;
+            std::vector<unsigned int> indices;
 
             for (unsigned int t = 0; t < someMesh->mNumVertices; ++t) {
                 const aiVector3D someVec = someMesh->mVertices[t];
@@ -29,40 +29,20 @@ Model::Model(const std::string & file) {
 
                 for (unsigned int i = 0; i < face.mNumIndices; i++) {
                     int index = face.mIndices[i];
-                    indexes.push_back(index);
+                    indices.push_back(index);
                 }
             }
 
-            this->vertices = vertices;
-            this->indices = indices;
-            this->loaded = true;
+            this->meshes.push_back(Mesh(vertices, indices));
         }
+        this->loaded = true;
     } else std::cerr << "Model does not contain meshes" << std::endl;
 }
 
 void Model::init() {
     if (!this->loaded) return;
 
-    // create buffers/arrays
-    glGenVertexArrays(1, &this->VAO);
-    glGenBuffers(1, &this->VBO);
-    glGenBuffers(1, &this->EBO);
-
-    glBindVertexArray(this->VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
-    glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(Vertex), &this->vertices[0], GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indices.size() * sizeof(unsigned int), &this->indices[0], GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-    // vertex normals
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-    // vertex texture coords
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
+    for (auto & mesh : this->meshes) mesh.init();
 
     this->initialized = true;
 }
@@ -70,21 +50,14 @@ void Model::init() {
 void Model::render() {
     if (!this->initialized) return;
 
-    glBindVertexArray(this->VAO);
-    glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
-    glActiveTexture(GL_TEXTURE0);
-    glBindVertexArray(0);
+    for (auto & mesh : this->meshes) mesh.render();
 }
 
 void Model::cleanUp() {
     if (!this->initialized) return;
 
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
-    glDisableVertexAttribArray(2);
-    glDeleteVertexArrays(1, &this->VAO);
-    glDeleteBuffers(1, &this->VBO);
-    glDeleteBuffers(1, &this->EBO);
+    for (auto & mesh : this->meshes) mesh.cleanUp();
+
     this->initialized = false;
     this->loaded = false;
 }

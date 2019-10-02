@@ -30,6 +30,6 @@ else
 
 endif
 
-src = [ 'model.cpp', 'entity.cpp', 'shader.cpp' ]
+src = [ 'mesh.cpp', 'model.cpp', 'entity.cpp', 'shader.cpp' ]
 
 executable('game', 'game.cpp', src, include_directories: includeDir, dependencies: dependencies) 

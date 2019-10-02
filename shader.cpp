@@ -45,7 +45,7 @@ std::string Shader::read(const int type) const {
 }
 
 void Shader::checkForError(GLuint shader, GLuint flag, bool isProgram,
-        const std::string & errorMessage) const {
+        const std::string & errorMessage) {
     GLint success = 0;
     GLchar error[1024] = { 0 };
 
@@ -61,10 +61,11 @@ void Shader::checkForError(GLuint shader, GLuint flag, bool isProgram,
             glGetShaderInfoLog(shader, sizeof(error), NULL, error);
 
         std::cerr << errorMessage << ": '" << error << "'" << std::endl;
+        this->loaded = false;
     }
 }
 
-GLuint Shader::create(unsigned int type) const {
+GLuint Shader::create(unsigned int type) {
     const std::string text = this->read(type);
     GLuint shader = glCreateShader(type);
 
@@ -145,8 +146,11 @@ GLuint Shader::getId() const {
     return this->m_program;
 }
 
-void Shader::use() const {
-    glUseProgram(this->m_program);
+void Shader::use() {
+	if (this->loaded) {
+		glUseProgram(this->m_program);
+		this->used = true;
+	}
 }
 
 Shader:: ~Shader() {
@@ -156,4 +160,6 @@ Shader:: ~Shader() {
     }
 
     glDeleteProgram(this->m_program);
+
+    this->used = false;
 }
