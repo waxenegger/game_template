@@ -46,9 +46,30 @@ class Model {
         bool hasBeenInitialized() { return this->initialized; };
 };
 
-class Shader final {
-    static const int NUM_SHADERS = 2;
+static const int NUM_SHADERS = 2;
+static const std::string DEFAULT_VERTEX_SHADER =
+		"#version 300 es\n \
+		 in vec3 position;\n \
+		 uniform mat4 model;\n \
+		 uniform mat4 view;\n \
+		 uniform mat4 projection;\n \
+		 void main() {\n \
+		 gl_Position = projection * view * model * vec4(position, 1.0);\n}";
+		 //gl_Position = model * vec4(position, 1.0);\n}";
+static const std::string DEFAULT_FRAGMENT_SHADER =
+		"#version 300 es\n"
+		"#ifdef GL_ES\n"
+		"precision highp float;\n"
+		"#endif\n"
+		"uniform vec3 objectColor;\n"
+		"uniform vec3 lightColor;\n"
+		"out vec4 fragColor;\n"
+		"void main() {\n"
+		"vec3 ambient = lightColor * 1.0;\n"
+		"fragColor = vec4(ambient * objectColor, 1.0);\n"
+		"}";
 
+class Shader final {
 	private:
         std::string m_file_name;
 
@@ -61,10 +82,11 @@ class Shader final {
         std::string read(const int type) const;
         void checkForError(GLuint shader, GLuint flag, bool isProgram,
             const std::string & errorMessage);
-        GLuint create(unsigned int type);
+        GLuint create(const unsigned int type, const std::string text);
+        void init(const std::string & file_name);
 
     public:
-        Shader() { this->loaded = false; };
+        Shader();
         Shader(const std::string & file_name);
         virtual ~Shader();
         bool hasBeenLoaded() { return this->loaded; };
@@ -83,6 +105,7 @@ class Shader final {
         void setMat4(const std::string &name, const glm::mat4 &mat) const;
         GLuint getId() const;
         void use();
+        void stopUse();
 };
 
 class Entity {

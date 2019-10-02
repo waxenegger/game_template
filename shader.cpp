@@ -1,12 +1,18 @@
 #include "render.hpp"
 
-Shader::Shader(const std::string & file_name) {
-    this->m_file_name = file_name;
-    this->m_program = glCreateProgram();
-    this->m_shaders[0] = this->create(GL_VERTEX_SHADER);
-    this->m_shaders[1] = this->create(GL_FRAGMENT_SHADER);
+Shader::Shader() {
+	this->init("");
+    this->use();
+}
 
-    for (unsigned int i = 0; i < this->NUM_SHADERS; i++)
+void Shader::init(const std::string & file_name) {
+    this->m_program = glCreateProgram();
+    this->m_shaders[0] = this->create(GL_VERTEX_SHADER,
+    		file_name.empty() ? DEFAULT_VERTEX_SHADER : this->read(GL_VERTEX_SHADER));
+    this->m_shaders[1] = this->create(GL_FRAGMENT_SHADER,
+    		file_name.empty() ? DEFAULT_FRAGMENT_SHADER : this->read(GL_FRAGMENT_SHADER));
+
+    for (unsigned int i = 0; i < NUM_SHADERS; i++)
     glAttachShader(this->m_program, this->m_shaders[i]);
 
     glBindAttribLocation(m_program, 0, "position");
@@ -18,6 +24,11 @@ Shader::Shader(const std::string & file_name) {
     glValidateProgram(m_program);
     this->checkForError(this->m_program, GL_LINK_STATUS, true,
             "Invalid shader program");
+}
+
+Shader::Shader(const std::string & file_name) {
+    this->m_file_name = file_name;
+    this->init(this->m_file_name);
 }
 
 std::string Shader::read(const int type) const {
@@ -65,8 +76,7 @@ void Shader::checkForError(GLuint shader, GLuint flag, bool isProgram,
     }
 }
 
-GLuint Shader::create(unsigned int type) {
-    const std::string text = this->read(type);
+GLuint Shader::create(const unsigned int type, const std::string text) {
     GLuint shader = glCreateShader(type);
 
     if (shader == 0)
@@ -153,13 +163,18 @@ void Shader::use() {
 	}
 }
 
+void Shader::stopUse() {
+	if (this->loaded && this->used) {
+		glUseProgram(0);
+		this->used = false;
+	}
+}
+
 Shader:: ~Shader() {
-    for (unsigned int i = 0; i < this->NUM_SHADERS; i++) {
+    for (unsigned int i = 0; i < NUM_SHADERS; i++) {
         glDetachShader(this->m_program, this->m_shaders[i]);
         glDeleteShader(this->m_shaders[i]);
     }
 
     glDeleteProgram(this->m_program);
-
-    this->used = false;
 }

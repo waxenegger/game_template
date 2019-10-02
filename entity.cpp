@@ -9,7 +9,13 @@ Entity::Entity(const Model & model, const Shader & shader) : Entity(model) {
 }
 
 void Entity::render() {
-	if (this->shader.isBeingUsed()) this->shader.setMat4("model", this->calculateTransformationMatrix());
+	this->shader.use();
+	if (this->shader.isBeingUsed()) {
+		this->scaleFactor = 2.0f;
+		this->shader.setMat4("model", this->calculateTransformationMatrix());
+		this->shader.setVec3("lightColor",  1.0f, 1.0f, 1.0f);
+		this->shader.setVec3("objectColor", 1.0f, 1.0f, 1.0f);
+	}
 
 	this->model.render();
 }
