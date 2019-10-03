@@ -31,7 +31,10 @@ bool Game::init() {
 
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
         glEnable(GL_DEPTH_TEST);
-        glDepthFunc(GL_LESS);
+        glDepthFunc(GL_GREATER);
+        glDepthMask( GL_FALSE );
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         window = SDL_CreateWindow("Game", SDL_WINDOWPOS_UNDEFINED,
                 SDL_WINDOWPOS_UNDEFINED, this->width, this->height,
@@ -72,13 +75,9 @@ void Game::run() {
     SDL_StartTextInput();
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
-    Camera camera = Camera(-5.0f, 0.0f, -5.0f);
+    std::unique_ptr<Camera> camera(Camera::instance(-5.0f, 0.0f, -5.0f));
 
-    Model m("/tmp/batman.obj");
-    if (m.hasBeenLoaded()) {
-        m.init();
-        this->scene.push_back(Entity(m, Shader()));
-    }
+    this->createTestModels();
 
     while (!quit) {
 
@@ -90,14 +89,14 @@ void Game::run() {
                 break;
 
             case SDL_MOUSEMOTION:
-                camera.updateDirection(
+                camera->updateDirection(
                         e.motion.xrel, e.motion.yrel, this->frameDuration);
                 break;
 
             case SDL_WINDOWEVENT:
                 if(e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
                     this->resize(e.window.data1, e.window.data2);
-                    camera.setPerspective(
+                    camera->setPerspective(
                             glm::perspective(glm::radians(45.0f), this->getAspectRatio(), 0.01f, 1000.0f));
                 }
                 break;
@@ -110,15 +109,15 @@ void Game::run() {
                 char input = toupper(e.text.text[0]);
                 if (input == 'Q') quit = true;
                 else if (input == 'F')this->toggleWireframe();
-                else camera.updateLocation(input, this->frameDuration);
+                else camera->updateLocation(input, this->frameDuration);
                 break;
             }
         }
 
-        this->render(camera);
+        this->render();
     }
 
-    for (auto & entity : this->scene) entity.cleanUp();
+    for (auto & entity : this->scene) entity->cleanUp();
 
     SDL_StopTextInput();
 }
@@ -130,12 +129,12 @@ void Game::clearScreen(float r, float g, float b, float a) {
     glViewport(0,0,(GLsizei)this->width,(GLsizei)this->height);
 }
 
-void Game::render(Camera & camera) {
+void Game::render() {
     glPolygonMode(GL_FRONT_AND_BACK, this->wireframe ? GL_LINE : GL_FILL);
 
     this->clearScreen(0, 0, 0, 0);
 
-    for (auto & entity : this->scene) entity.render(camera);
+    for (auto & entity : this->scene) entity->render();
 
     SDL_GL_SwapWindow(window);
 
@@ -166,6 +165,33 @@ float Game::getLastFrameDuration() const {
 
 Game::~Game() {
     cleanUp();
+}
+
+void Game::createTestModels() {
+    Model * m = new Model("/tmp/batman.obj");
+    if (m->hasBeenLoaded()) {
+        m->init();
+        this->scene.push_back(std::make_unique<Entity>(m, new Shader()));
+    }
+    Model * m2 = new Model("/tmp/batman.obj");
+    if (m2->hasBeenLoaded()) {
+        m2->init();
+        Entity * ent = new Entity(m2, new Shader());
+        ent->setPosition(-1.0f, 0.0f, -2.0f);
+        ent->setScaleFactor(1.5f);
+        ent->setColor(1.0f, 0.0f, 0.0f, 0.5f);
+        this->scene.push_back(std::unique_ptr<Entity>(ent));
+    }
+    Model * m3 = new Model("/tmp/batman.obj");
+    if (m3->hasBeenLoaded()) {
+        m3->init();
+        Entity * ent = new Entity(m3, new Shader());
+        ent->setPosition(1.5f, 0.5f, 1.0f);
+        ent->setRotation(0, 180, 0);
+        ent->setScaleFactor(0.5f);
+        ent->setColor(0.0f, 1.0f, 0.0f, 0.5f);
+        this->scene.push_back(std::unique_ptr<Entity>(ent));
+    }
 }
 
 int main(int argc, char **argv) {

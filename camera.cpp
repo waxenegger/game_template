@@ -5,7 +5,9 @@ Camera::Camera(const float x, const float y, const float z) {
 };
 
 void Camera::setPosition(const float x, const float y, const float z) {
-    this->position = glm::vec3(x, y, z);
+    this->position.x = x;
+    this->position.y = y;
+    this->position.z = z;
 };
 
 glm::vec3 Camera::getPosition() {
@@ -13,7 +15,10 @@ glm::vec3 Camera::getPosition() {
 };
 
 void Camera::setDirection(const float x, const float y, const float z) {
-    this->direction = glm::normalize(glm::vec3(x, y, z));
+    const glm::vec3 tmp = glm::normalize(glm::vec3(x, y, z));
+    this->direction.x = tmp.x;
+    this->direction.y = tmp.y;
+    this->direction.z = tmp.z;
 };
 
 glm::vec3 Camera::getDirection() {
@@ -81,3 +86,5 @@ glm::mat4 Camera::getViewMatrix() {
             glm::lookAt(this->position, this->position + this->direction,
                     this->upVector);
 }
+
+Camera * Camera::singleton = nullptr;

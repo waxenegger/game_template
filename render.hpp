@@ -41,6 +41,7 @@ class Model {
         bool initialized = false;
 
     public:
+        ~Model() { this->cleanUp();}
         Model() {};
         Model(const std::string & file);
         void init();
@@ -68,12 +69,12 @@ static const std::string DEFAULT_FRAGMENT_SHADER = "#version 300 es\n"
         "#ifdef GL_ES\n"
         "precision highp float;\n"
         "#endif\n"
-        "uniform vec3 lightColor;\n"
-        "uniform vec3 objectColor;\n"
+        "uniform vec4 lightColor;\n"
+        "uniform vec4 objectColor;\n"
         "out vec4 fragColor;\n"
         "void main() {\n"
-        "vec3 ambient = lightColor * 1.0;\n"
-        "fragColor = vec4(ambient * objectColor, 1.0);\n"
+        "vec4 ambient = lightColor * 1.0;\n"
+        "fragColor = vec4(ambient * objectColor);\n"
         "}";
 
 class Shader final {
@@ -121,6 +122,7 @@ class Shader final {
 
 class Camera final {
     private:
+		static Camera * singleton;
         const float SENSITIVITY_DIRECTION_CHANGE = 0.0005f;
         const float SENSITIVITY_POSITION_CHANGE = 0.05f;
 
@@ -133,9 +135,9 @@ class Camera final {
         float pitch = glm::asin(1);
         float yaw = glm::atan(0.0f, 0.0f);
 
-    public:
         Camera() {};
         Camera(const float x, const float y, const float z);
+    public:
         void setPosition(const float x, const float y, const float z);
         glm::vec3 getPosition();
         void setDirection(const float x, const float y, const float z);
@@ -146,23 +148,31 @@ class Camera final {
                 const float frameDuration);
         void updateLocation(const char direction, const float frameDuration);
         glm::mat4 getViewMatrix();
+        static Camera * instance() {
+        	if (Camera::singleton == nullptr) Camera::singleton = new Camera();
+        	return Camera::singleton;
+        }
+        static Camera * instance(const float x, const float y, const float z) {
+        	if (Camera::singleton == nullptr) Camera::singleton = new Camera(x,y,z);
+        	return Camera::singleton;
+        }
 };
 
 class Entity {
     private:
-        Model model;
-        Shader shader;
+        Model * model = nullptr;
+        Shader * shader = nullptr;
         glm::vec3 position = glm::vec3(0.0f);
         glm::vec3 rotation = glm::vec3(0.0f);
         float scaleFactor = 1.0f;
+        glm::vec4 color = glm::vec4(1.0f);
 
     public:
-        Entity() = delete;
-        Entity(const Model & model);
-        Entity(const Model & model, const Shader & shader);
-        void setShader(const Shader & shader) {
-            this->shader = shader;
-        }
+        ~Entity();
+        Entity() { this->shader = new Shader();};
+        Entity(Model * model);
+        Entity(Model * model, Shader * shader);
+        void setShader(Shader * shader);
         float getScaleFactor() {
             return this->scaleFactor;
         }
@@ -186,8 +196,15 @@ class Entity {
             this->rotation.z = glm::radians(static_cast<float>(z));
         }
         glm::mat4 calculateTransformationMatrix();
-        void render(Camera & camera);
+        void render();
         void cleanUp();
+        void dumpActiveShaderAttributes();
+        void setColor(const float red, const float green, const float blue, const float alpha) {
+        	this->color.x = red;
+        	this->color.y = green;
+        	this->color.z = blue;
+        	this->color.w = alpha;
+        }
 };
 
 #endif

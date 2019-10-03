@@ -16,10 +16,10 @@ class Game {
         SDL_Window * window = nullptr;
         SDL_GLContext glContext = nullptr;
 
-        std::vector<Entity> scene;
+        std::vector<std::unique_ptr<Entity>> scene;
 
         void clearScreen(float r, float g, float b, float a);
-        void render(Camera & camera);
+        void render();
         void cleanUp();
 
     public:
@@ -30,6 +30,7 @@ class Game {
         void resize(int width, int height);
         float getLastFrameDuration() const;
         virtual ~Game();
+        void createTestModels();
 };
 
 #endif

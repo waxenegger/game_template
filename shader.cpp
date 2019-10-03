@@ -2,7 +2,6 @@
 
 Shader::Shader() {
     this->init("");
-    this->use();
 }
 
 void Shader::init(const std::string & file_name) {
@@ -157,7 +156,7 @@ GLuint Shader::getId() const {
 }
 
 void Shader::use() {
-    if (this->loaded) {
+    if (this->loaded && !this->used) {
         glUseProgram(this->m_program);
         this->used = true;
     }
