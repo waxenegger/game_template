@@ -1,3 +1,4 @@
+#include "game.hpp"
 #include "render.hpp"
 
 class Model;
@@ -8,16 +9,18 @@ Entity::Entity(const Model & model, const Shader & shader) : Entity(model) {
 	this->setShader(shader);
 }
 
-void Entity::render() {
+void Entity::render(Camera & camera) {
 	this->shader.use();
+
 	if (this->shader.isBeingUsed()) {
-		this->scaleFactor = 2.0f;
 		this->shader.setMat4("model", this->calculateTransformationMatrix());
-		this->shader.setVec3("lightColor",  1.0f, 1.0f, 1.0f);
-		this->shader.setVec3("objectColor", 1.0f, 1.0f, 1.0f);
+		this->shader.setVec3("objectColor", 1.0f, 1.0f, 0.0f);
+		camera.setShaderUniforms(this->shader);
 	}
 
 	this->model.render();
+
+	this->shader.stopUse();
 }
 
 void Entity::cleanUp() { this->model.cleanUp(); }

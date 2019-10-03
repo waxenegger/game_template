@@ -2,7 +2,7 @@
 
 Shader::Shader() {
 	this->init("");
-    this->use();
+	this->use();
 }
 
 void Shader::init(const std::string & file_name) {

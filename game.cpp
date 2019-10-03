@@ -74,38 +74,26 @@ void Game::run() {
 
 	Camera camera = Camera(-5.0f, 0.0f, -5.0f);
 
-    Model m("/opt/projects/opengl/res/test.obj");
+    Model m("/tmp/cube.obj");
     if (m.hasBeenLoaded()) {
         m.init();
         this->scene.push_back(Entity(m, Shader()));
     }
 
-	float pitch = glm::asin(1);
-	float yaw = glm::atan(0.0f, 0.0f);
-
     while (!quit) {
-    	//glm::mat4 viewInverted = glm::inverse(view);
-		//glm::vec3 directionInverted = - glm::normalize(glm::vec3(viewInverted[2]));
-
-		const glm::vec3 presentDirection = camera.getDirection();
-		glm::vec3 presentPosition = camera.getPosition();
-		pitch = glm::asin(presentDirection.y);
-		yaw   = glm::atan(presentDirection.z, presentDirection.x);
-
-		//pitch = glm::asin(directionInverted.y);
-		//yaw   = glm::atan(directionInverted.z, directionInverted.x);
 
     	while (SDL_PollEvent(&e) != 0) {
 			switch(e.type) {
+
 				case SDL_MOUSEBUTTONUP:
 					SDL_SetRelativeMouseMode(SDL_GetRelativeMouseMode() == SDL_TRUE ? SDL_FALSE : SDL_TRUE);
 					break;
+
 				case SDL_MOUSEMOTION:
-					pitch -= e.motion.yrel * 0.0005 * this->frameDuration;
-					yaw += e.motion.xrel * 0.0005 * this->frameDuration;
-					camera.setDirection(
-							glm::cos(pitch) * glm::cos(yaw), glm::sin(pitch), glm::cos(pitch) * glm::sin(yaw));
+				    camera.updateDirection(
+				            e.motion.xrel, e.motion.yrel, this->frameDuration);
 					break;
+
 				case SDL_WINDOWEVENT:
 					if(e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
 						this->resize(e.window.data1, e.window.data2);
@@ -113,40 +101,16 @@ void Game::run() {
 							glm::perspective(glm::radians(45.0f), this->getAspectRatio(), 0.01f, 1000.0f));
 					}
 					break;
+
 				case SDL_QUIT:
 					quit = true;
 					break;
+
 				case SDL_TEXTINPUT:
 					char input = toupper(e.text.text[0]);
 					if (input == 'Q') quit = true;
 					else if (input == 'F')this->toggleWireframe();
-					else {
-						float speedFactor = 0.05 * this->frameDuration;
-
-						float deltaXRot = glm::cos(pitch) * glm::cos(yaw);
-						float deltaYRot = glm::cos(pitch) * glm::sin(yaw);
-
-						float deltaXMove = glm::cos(yaw - glm::pi<float>() / 2);
-						float deltaYMove = glm::sin(yaw - glm::pi<float>() / 2);
-
-						if (input == 'W') {
-							presentPosition.x += deltaXRot * speedFactor;
-							presentPosition.z += deltaYRot * speedFactor;
-						} else if (input == 'S') {
-							presentPosition.x -= deltaXRot * speedFactor;
-							presentPosition.z -= deltaYRot * speedFactor;
-						} else if (input == 'A') {
-							presentPosition.x += deltaXMove * speedFactor;
-							presentPosition.z += deltaYMove * speedFactor;
-						} else if (input == 'D') {
-							presentPosition.x -= deltaXMove * speedFactor;
-							presentPosition.z -= deltaYMove * speedFactor;
-						}
-
-						camera.setPosition(presentPosition.x, presentPosition.y, presentPosition.z);
-						//view = glm::lookAt(camPosition, camPosition + directionInverted, upVector);
-						//shader.setMat4("view", view);
-					}
+					else camera.updateLocation(input, this->frameDuration);
 				break;
 			}
         }
@@ -171,9 +135,7 @@ void Game::render(Camera & camera) {
 
 	this->clearScreen(0, 0, 0, 0);
 
-	camera.update();
-
-	for (auto & entity : this->scene) entity.render();
+	for (auto & entity : this->scene) entity.render(camera);
 
 	SDL_GL_SwapWindow(window);
 

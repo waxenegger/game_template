@@ -2,6 +2,10 @@
 #define RENDER_HPP
 
 #include "includes.hpp"
+#include "render.hpp"
+
+static const int DEFAULT_WIDTH = 640;
+static const int DEFAULT_HEIGHT = 480;
 
 class Vertex {
     public:
@@ -55,7 +59,6 @@ static const std::string DEFAULT_VERTEX_SHADER =
 		 uniform mat4 projection;\n \
 		 void main() {\n \
 		 gl_Position = projection * view * model * vec4(position, 1.0);\n}";
-		 //gl_Position = model * vec4(position, 1.0);\n}";
 static const std::string DEFAULT_FRAGMENT_SHADER =
 		"#version 300 es\n"
 		"#ifdef GL_ES\n"
@@ -108,6 +111,34 @@ class Shader final {
         void stopUse();
 };
 
+class Camera final {
+    private:
+        const float SENSITIVITY_DIRECTION_CHANGE = 0.0005f;
+        const float SENSITIVITY_POSITION_CHANGE = 0.05f;
+
+        glm::vec3 position = glm::vec3(1.0f);
+        glm::vec3 direction = glm::vec3(0.001f, 0.0f, 0.001f);
+        glm::mat4 perspective = glm::perspective(glm::radians(45.0f),
+                static_cast<float>(DEFAULT_WIDTH)
+                        / static_cast<float>(DEFAULT_HEIGHT), 0.01f, 1000.0f);
+        const glm::vec3 upVector = glm::vec3(0.0f, 1.0f, 0.0f);
+        float pitch = glm::asin(1);
+        float yaw = glm::atan(0.0f, 0.0f);
+
+    public:
+        Camera() {};
+        Camera(const float x, const float y, const float z);
+        void setPosition(const float x, const float y, const float z);
+        glm::vec3 getPosition();
+        void setDirection(const float x, const float y, const float z);
+        glm::vec3 getDirection();
+        void setPerspective(const glm::mat4 perspective);
+        void updateDirection(
+                const float deltaX, const float  deltaY, const float frameDuration);
+        void updateLocation(const char direction, const float frameDuration);
+        void setShaderUniforms(Shader & shader);
+};
+
 class Entity {
     private:
         Model model;
@@ -136,7 +167,7 @@ class Entity {
             this->rotation.z = glm::radians(static_cast<float>(z));
         }
         glm::mat4 calculateTransformationMatrix();
-        void render();
+        void render(Camera & camera);
         void cleanUp();
 };
 
