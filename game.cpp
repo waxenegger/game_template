@@ -22,7 +22,7 @@ void Game::cleanUp() {
 bool Game::init() {
     if (SDL_Init( SDL_INIT_VIDEO) < 0) {
         std::cerr << "SDL could not initialize! SDL Error: " << SDL_GetError()
-                << std::endl;
+                        << std::endl;
         return false;
     } else {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
@@ -35,7 +35,7 @@ bool Game::init() {
 
         window = SDL_CreateWindow("Game", SDL_WINDOWPOS_UNDEFINED,
                 SDL_WINDOWPOS_UNDEFINED, this->width, this->height,
-				SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+                SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
         if (window == nullptr) {
             std::cerr << "Window could not be created! SDL Error: "
                     << SDL_GetError() << std::endl;
@@ -72,9 +72,9 @@ void Game::run() {
     SDL_StartTextInput();
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
-	Camera camera = Camera(-5.0f, 0.0f, -5.0f);
+    Camera camera = Camera(-5.0f, 0.0f, -5.0f);
 
-    Model m("/tmp/cube.obj");
+    Model m("/tmp/batman.obj");
     if (m.hasBeenLoaded()) {
         m.init();
         this->scene.push_back(Entity(m, Shader()));
@@ -82,37 +82,37 @@ void Game::run() {
 
     while (!quit) {
 
-    	while (SDL_PollEvent(&e) != 0) {
-			switch(e.type) {
+        while (SDL_PollEvent(&e) != 0) {
+            switch(e.type) {
 
-				case SDL_MOUSEBUTTONUP:
-					SDL_SetRelativeMouseMode(SDL_GetRelativeMouseMode() == SDL_TRUE ? SDL_FALSE : SDL_TRUE);
-					break;
+            case SDL_MOUSEBUTTONUP:
+                SDL_SetRelativeMouseMode(SDL_GetRelativeMouseMode() == SDL_TRUE ? SDL_FALSE : SDL_TRUE);
+                break;
 
-				case SDL_MOUSEMOTION:
-				    camera.updateDirection(
-				            e.motion.xrel, e.motion.yrel, this->frameDuration);
-					break;
+            case SDL_MOUSEMOTION:
+                camera.updateDirection(
+                        e.motion.xrel, e.motion.yrel, this->frameDuration);
+                break;
 
-				case SDL_WINDOWEVENT:
-					if(e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
-						this->resize(e.window.data1, e.window.data2);
-						camera.setPerspective(
-							glm::perspective(glm::radians(45.0f), this->getAspectRatio(), 0.01f, 1000.0f));
-					}
-					break;
+            case SDL_WINDOWEVENT:
+                if(e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+                    this->resize(e.window.data1, e.window.data2);
+                    camera.setPerspective(
+                            glm::perspective(glm::radians(45.0f), this->getAspectRatio(), 0.01f, 1000.0f));
+                }
+                break;
 
-				case SDL_QUIT:
-					quit = true;
-					break;
+            case SDL_QUIT:
+                quit = true;
+                break;
 
-				case SDL_TEXTINPUT:
-					char input = toupper(e.text.text[0]);
-					if (input == 'Q') quit = true;
-					else if (input == 'F')this->toggleWireframe();
-					else camera.updateLocation(input, this->frameDuration);
-				break;
-			}
+            case SDL_TEXTINPUT:
+                char input = toupper(e.text.text[0]);
+                if (input == 'Q') quit = true;
+                else if (input == 'F')this->toggleWireframe();
+                else camera.updateLocation(input, this->frameDuration);
+                break;
+            }
         }
 
         this->render(camera);
@@ -124,44 +124,44 @@ void Game::run() {
 }
 
 void Game::clearScreen(float r, float g, float b, float a) {
-	glClearColor(r, g, b, a);
-	glClearDepthf(1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glViewport(0,0,(GLsizei)this->width,(GLsizei)this->height);
+    glClearColor(r, g, b, a);
+    glClearDepthf(1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glViewport(0,0,(GLsizei)this->width,(GLsizei)this->height);
 }
 
 void Game::render(Camera & camera) {
-	glPolygonMode(GL_FRONT_AND_BACK, this->wireframe ? GL_LINE : GL_FILL);
+    glPolygonMode(GL_FRONT_AND_BACK, this->wireframe ? GL_LINE : GL_FILL);
 
-	this->clearScreen(0, 0, 0, 0);
+    this->clearScreen(0, 0, 0, 0);
 
-	for (auto & entity : this->scene) entity.render(camera);
+    for (auto & entity : this->scene) entity.render(camera);
 
-	SDL_GL_SwapWindow(window);
+    SDL_GL_SwapWindow(window);
 
-	const Uint32 currentTime = SDL_GetTicks();
-	this->frameDuration = currentTime - this->frameStart;
-	this->frameStart = currentTime;
+    const Uint32 currentTime = SDL_GetTicks();
+    this->frameDuration = currentTime - this->frameStart;
+    this->frameStart = currentTime;
 }
 
 float Game::getAspectRatio() const {
-	return static_cast<float>(this->width) / static_cast<float>(this->height);
+    return static_cast<float>(this->width) / static_cast<float>(this->height);
 }
 
 void Game::toggleWireframe() {
-	this->wireframe = !this->wireframe;
+    this->wireframe = !this->wireframe;
 }
 
 
 void Game::resize(int width, int height) {
-	this->width = width;
-	this->height = height;
+    this->width = width;
+    this->height = height;
 
-	glViewport(0,0,(GLsizei)this->width,(GLsizei)this->height);
+    glViewport(0,0,(GLsizei)this->width,(GLsizei)this->height);
 }
 
 float Game::getLastFrameDuration() const {
-	return (float) this->frameDuration / 1000.0f;
+    return (float) this->frameDuration / 1000.0f;
 }
 
 Game::~Game() {

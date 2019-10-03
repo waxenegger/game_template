@@ -1,19 +1,19 @@
 #include "render.hpp"
 
 Shader::Shader() {
-	this->init("");
-	this->use();
+    this->init("");
+    this->use();
 }
 
 void Shader::init(const std::string & file_name) {
     this->m_program = glCreateProgram();
     this->m_shaders[0] = this->create(GL_VERTEX_SHADER,
-    		file_name.empty() ? DEFAULT_VERTEX_SHADER : this->read(GL_VERTEX_SHADER));
+            file_name.empty() ? DEFAULT_VERTEX_SHADER : this->read(GL_VERTEX_SHADER));
     this->m_shaders[1] = this->create(GL_FRAGMENT_SHADER,
-    		file_name.empty() ? DEFAULT_FRAGMENT_SHADER : this->read(GL_FRAGMENT_SHADER));
+            file_name.empty() ? DEFAULT_FRAGMENT_SHADER : this->read(GL_FRAGMENT_SHADER));
 
     for (unsigned int i = 0; i < NUM_SHADERS; i++)
-    glAttachShader(this->m_program, this->m_shaders[i]);
+        glAttachShader(this->m_program, this->m_shaders[i]);
 
     glBindAttribLocation(m_program, 0, "position");
 
@@ -50,7 +50,7 @@ std::string Shader::read(const int type) const {
         //cout << output << endl;
     } else
         std::cerr << "Unable to read shader: " << this->m_file_name
-                << std::endl;
+        << std::endl;
 
     return output;
 }
@@ -157,17 +157,17 @@ GLuint Shader::getId() const {
 }
 
 void Shader::use() {
-	if (this->loaded) {
-		glUseProgram(this->m_program);
-		this->used = true;
-	}
+    if (this->loaded) {
+        glUseProgram(this->m_program);
+        this->used = true;
+    }
 }
 
 void Shader::stopUse() {
-	if (this->loaded && this->used) {
-		glUseProgram(0);
-		this->used = false;
-	}
+    if (this->loaded && this->used) {
+        glUseProgram(0);
+        this->used = false;
+    }
 }
 
 Shader:: ~Shader() {

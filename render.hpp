@@ -8,30 +8,30 @@ static const int DEFAULT_WIDTH = 640;
 static const int DEFAULT_HEIGHT = 480;
 
 class Vertex {
-    public:
-        glm::vec3 position;
-        glm::vec3 normal;
-        glm::vec2 uv;
+public:
+    glm::vec3 position;
+    glm::vec3 normal;
+    glm::vec2 uv;
 
-        Vertex(glm::vec3 position) {
-            this->position = position;
-        }
-    };
+    Vertex(glm::vec3 position) {
+        this->position = position;
+    }
+};
 
 class Mesh {
     public:
-		std::vector<Vertex> vertices;
-		std::vector<unsigned int> indices;
-		GLuint VAO = 0, VBO = 0, EBO = 0;
+        std::vector<Vertex> vertices;
+        std::vector<unsigned int> indices;
+        GLuint VAO = 0, VBO = 0, EBO = 0;
 
-		Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices) {
+        Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices) {
             this->vertices = vertices;
             this->indices = indices;
         }
         void init();
         void render();
         void cleanUp();
-    };
+};
 
 class Model {
     private:
@@ -46,34 +46,38 @@ class Model {
         void init();
         void render();
         void cleanUp();
-        bool hasBeenLoaded() { return this->loaded; };
-        bool hasBeenInitialized() { return this->initialized; };
+        bool hasBeenLoaded() {
+            return this->loaded;
+        };
+        bool hasBeenInitialized() {
+            return this->initialized;
+        };
 };
 
 static const int NUM_SHADERS = 2;
 static const std::string DEFAULT_VERTEX_SHADER =
-		"#version 300 es\n \
+        "#version 300 es\n \
 		 in vec3 position;\n \
 		 uniform mat4 model;\n \
 		 uniform mat4 view;\n \
 		 uniform mat4 projection;\n \
 		 void main() {\n \
-		 gl_Position = projection * view * model * vec4(position, 1.0);\n}";
-static const std::string DEFAULT_FRAGMENT_SHADER =
-		"#version 300 es\n"
-		"#ifdef GL_ES\n"
-		"precision highp float;\n"
-		"#endif\n"
-		"uniform vec3 objectColor;\n"
-		"uniform vec3 lightColor;\n"
-		"out vec4 fragColor;\n"
-		"void main() {\n"
-		"vec3 ambient = lightColor * 1.0;\n"
-		"fragColor = vec4(ambient * objectColor, 1.0);\n"
-		"}";
+		 gl_Position = projection * view * model * vec4(position, 1.0);\n"
+        "}";
+static const std::string DEFAULT_FRAGMENT_SHADER = "#version 300 es\n"
+        "#ifdef GL_ES\n"
+        "precision highp float;\n"
+        "#endif\n"
+        "uniform vec3 lightColor;\n"
+        "uniform vec3 objectColor;\n"
+        "out vec4 fragColor;\n"
+        "void main() {\n"
+        "vec3 ambient = lightColor * 1.0;\n"
+        "fragColor = vec4(ambient * objectColor, 1.0);\n"
+        "}";
 
 class Shader final {
-	private:
+    private:
         std::string m_file_name;
 
         GLuint m_program = 0;
@@ -84,7 +88,7 @@ class Shader final {
 
         std::string read(const int type) const;
         void checkForError(GLuint shader, GLuint flag, bool isProgram,
-            const std::string & errorMessage);
+                const std::string & errorMessage);
         GLuint create(const unsigned int type, const std::string text);
         void init(const std::string & file_name);
 
@@ -92,8 +96,12 @@ class Shader final {
         Shader();
         Shader(const std::string & file_name);
         virtual ~Shader();
-        bool hasBeenLoaded() { return this->loaded; };
-        bool isBeingUsed() { return this->used; };
+        bool hasBeenLoaded() {
+            return this->loaded;
+        };
+        bool isBeingUsed() {
+            return this->used;
+        };
         void setBool(const std::string &name, bool value) const;
         void setInt(const std::string &name, int value) const;
         void setFloat(const std::string &name, float value) const;
@@ -120,7 +128,7 @@ class Camera final {
         glm::vec3 direction = glm::vec3(0.001f, 0.0f, 0.001f);
         glm::mat4 perspective = glm::perspective(glm::radians(45.0f),
                 static_cast<float>(DEFAULT_WIDTH)
-                        / static_cast<float>(DEFAULT_HEIGHT), 0.01f, 1000.0f);
+                / static_cast<float>(DEFAULT_HEIGHT), 0.01f, 1000.0f);
         const glm::vec3 upVector = glm::vec3(0.0f, 1.0f, 0.0f);
         float pitch = glm::asin(1);
         float yaw = glm::atan(0.0f, 0.0f);
@@ -133,10 +141,11 @@ class Camera final {
         void setDirection(const float x, const float y, const float z);
         glm::vec3 getDirection();
         void setPerspective(const glm::mat4 perspective);
-        void updateDirection(
-                const float deltaX, const float  deltaY, const float frameDuration);
+        glm::mat4 getPerspective();
+        void updateDirection(const float deltaX, const float deltaY,
+                const float frameDuration);
         void updateLocation(const char direction, const float frameDuration);
-        void setShaderUniforms(Shader & shader);
+        glm::mat4 getViewMatrix();
 };
 
 class Entity {
@@ -151,11 +160,21 @@ class Entity {
         Entity() = delete;
         Entity(const Model & model);
         Entity(const Model & model, const Shader & shader);
-        void setShader(const Shader & shader)  { this->shader = shader; };
-        float getScaleFactor() { return this->scaleFactor; };
-        void setScaleFactor(const float scaleFactor)  { this->scaleFactor = scaleFactor; };
-        glm::vec3 getPosition() { return this->position; };
-        glm::vec3 getRotation()  { return this->rotation; };
+        void setShader(const Shader & shader) {
+            this->shader = shader;
+        }
+        float getScaleFactor() {
+            return this->scaleFactor;
+        }
+        void setScaleFactor(const float scaleFactor) {
+            this->scaleFactor = scaleFactor;
+        };
+        glm::vec3 getPosition() {
+            return this->position;
+        };
+        glm::vec3 getRotation() {
+            return this->rotation;
+        };
         void setPosition(const float x, const float y, const float z) {
             this->position.x = x;
             this->position.y = y;

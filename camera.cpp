@@ -2,27 +2,32 @@
 
 Camera::Camera(const float x, const float y, const float z) {
     this->position = glm::vec3(x, y, z);
-}
-;
+};
+
 void Camera::setPosition(const float x, const float y, const float z) {
     this->position = glm::vec3(x, y, z);
-}
-;
+};
+
 glm::vec3 Camera::getPosition() {
     return this->position;
-}
-;
+};
+
 void Camera::setDirection(const float x, const float y, const float z) {
     this->direction = glm::normalize(glm::vec3(x, y, z));
-}
-;
+};
+
 glm::vec3 Camera::getDirection() {
     return this->direction;
-}
-;
+};
+
 void Camera::setPerspective(const glm::mat4 perspective) {
     this->perspective = perspective;
 }
+
+glm::mat4 Camera::getPerspective() {
+    return this->perspective;
+}
+
 void Camera::updateDirection(const float deltaX, const float  deltaY, const float frameDuration) {
 
     this->pitch = glm::asin(this->getDirection().y) -
@@ -71,10 +76,8 @@ void Camera::updateLocation(const char direction, const float frameDuration) {
     }
 }
 
-void Camera::setShaderUniforms(Shader & shader) {
-    shader.setMat4("view",
+glm::mat4 Camera::getViewMatrix() {
+    return
             glm::lookAt(this->position, this->position + this->direction,
-                    this->upVector));
-    shader.setMat4("projection", this->perspective);
-    shader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+                    this->upVector);
 }
