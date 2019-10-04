@@ -30,7 +30,7 @@ void Entity::render() {
 			this->shader->setMat4("projection", Camera::instance()->getPerspective());
 			this->shader->setVec4("lightColor",  1.0f, 1.0f, 1.0f, 0.5f);
 			this->shader->setVec4("objectColor", this->color);
-			this->dumpActiveShaderAttributes();
+			//this->dumpActiveShaderAttributes();
 		}
 	}
 

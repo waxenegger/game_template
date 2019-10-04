@@ -170,6 +170,7 @@ Game::~Game() {
 
 void Game::createTestModels() {
     Model * teapot = new Model(this->root_path + "test/teapot.obj");
+    //Model * teapot = new Model("/tmp/batman.obj");
     if (teapot->hasBeenLoaded()) {
         teapot->init();
         Entity * ent = new Entity(teapot, new Shader());
@@ -185,8 +186,9 @@ int main(int argc, char **argv) {
     std::string root((argc > 1) ? argv[1] : "./");
     if (root[static_cast<int>(root.length())-1] != '/') root.append("/");
 
-    if (game.init(root))
-        game.run();
+    if (game.init(root)) game.run();
+
+    TEXTURES.clear();
 
     return 0;
 }

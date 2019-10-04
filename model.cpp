@@ -60,24 +60,34 @@ Mesh Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
              indices.push_back(face.mIndices[j]);
      }
 
-     /*
-      * TODO: materials
-     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+     if (scene->HasMaterials()) {
+         const aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
-     vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
-     textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-
-     vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
-     textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
-
-     std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
-     textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
-
-     std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
-     textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
-     */
+         this->addTextures(material, aiTextureType_DIFFUSE, "texture_diffuse", textures);
+         this->addTextures(material, aiTextureType_SPECULAR, "texture_specular", textures);
+         this->addTextures(material, aiTextureType_HEIGHT, "texture_normal", textures);
+         this->addTextures(material, aiTextureType_AMBIENT, "texture_height", textures);
+     }
 
      return Mesh(vertices, indices, textures);
+}
+
+void Model::addTextures(const aiMaterial * mat, const aiTextureType type, const std::string name, std::vector<Texture> & textures) {
+    for(unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
+        aiString str;
+        mat->GetTexture(type, i, &str);
+
+        std::map<std::string, Texture>::iterator val(TEXTURES.find(str.C_Str()));
+
+        if (val != TEXTURES.end()) textures.push_back(val->second);
+        else {
+            Texture texture;
+            texture.setType(name);
+            texture.setPath(str.C_Str());
+            textures.push_back(texture);
+            TEXTURES[str.C_Str()] = texture;
+        }
+    }
 }
 
 void Model::init() {

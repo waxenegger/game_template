@@ -1,7 +1,6 @@
 #include "render.hpp"
 
 void Mesh::init() {
-    // create buffers/arrays
     glGenVertexArrays(1, &this->VAO);
     glGenBuffers(1, &this->VBO);
     glGenBuffers(1, &this->EBO);
@@ -15,10 +14,21 @@ void Mesh::init() {
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-    // vertex normals
+
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-    // vertex texture coords
+
+    for (auto & texure : this->textures) {
+        SDL_Surface * textureSurface = IMG_Load(texure.getPath().c_str());
+        if(textureSurface != nullptr) {
+            glGenTextures(1, &this->TEXTURE_ID);
+            glBindTexture(GL_TEXTURE_2D, this->TEXTURE_ID);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureSurface->w, textureSurface->h, 0, GL_RGBA,
+                    GL_UNSIGNED_BYTE, textureSurface->pixels);
+        }
+        SDL_FreeSurface(textureSurface);
+    }
+
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
 }
@@ -37,4 +47,5 @@ void Mesh::cleanUp() {
     glDeleteVertexArrays(1, &this->VAO);
     glDeleteBuffers(1, &this->VBO);
     glDeleteBuffers(1, &this->EBO);
+    glDeleteTextures(1, &this->TEXTURE_ID);
 }

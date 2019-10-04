@@ -18,13 +18,15 @@ class Texture {
         std::string getPath() {
             return this->path;
         }
-        void setType(std::string & type) {
+        void setType(const std::string & type) {
             this->type = type;
         }
-        void setPath(std::string & path) {
+        void setPath(const std::string & path) {
             this->path = path;
         }
 };
+
+static std::map<std::string, Texture> TEXTURES;
 
 class Vertex {
 public:
@@ -44,7 +46,7 @@ class Mesh {
         std::vector<Vertex> vertices;
         std::vector<unsigned int> indices;
         std::vector<Texture> textures;
-        GLuint VAO = 0, VBO = 0, EBO = 0;
+        GLuint VAO = 0, VBO = 0, EBO = 0, TEXTURE_ID = 0;
 
         Mesh(std::vector<Vertex> & vertices, std::vector<unsigned int> & indices, std::vector<Texture> & textures) {
             this->vertices = vertices;
@@ -65,6 +67,7 @@ class Model {
 
         void processNode(const aiNode * node, const aiScene *scene);
         Mesh processMesh(const aiMesh *mesh, const aiScene *scene);
+        void addTextures(const aiMaterial * mat, const aiTextureType type, const std::string name, std::vector<Texture> & textures);
     public:
         ~Model() { this->cleanUp();}
         Model() {};
@@ -82,24 +85,31 @@ class Model {
 
 static const int NUM_SHADERS = 2;
 static const std::string DEFAULT_VERTEX_SHADER =
-        "#version 300 es\n \
-		 in vec3 position;\n \
-		 uniform mat4 model;\n \
-		 uniform mat4 view;\n \
-		 uniform mat4 projection;\n \
-		 void main() {\n \
-		 gl_Position = projection * view * model * vec4(position, 1.0);\n"
+        "#version 300 es\n"
+		"in vec3 position;\n"
+        "in vec3 normal;\n"
+        "in vec2 uv;\n"
+        "out vec2 text;\n"
+		"uniform mat4 model;\n"
+		"uniform mat4 view;\n"
+		"uniform mat4 projection;\n"
+		"void main() {\n"
+		"    gl_Position = projection * view * model * vec4(position, 1.0);\n"
+        "    text = uv;\n"
         "}";
 static const std::string DEFAULT_FRAGMENT_SHADER = "#version 300 es\n"
         "#ifdef GL_ES\n"
         "precision highp float;\n"
         "#endif\n"
+        "in vec2 text;\n"
         "uniform vec4 lightColor;\n"
         "uniform vec4 objectColor;\n"
+        "uniform sampler2D sampler;\n"
         "out vec4 fragColor;\n"
         "void main() {\n"
-        "vec4 ambient = lightColor * 1.0;\n"
-        "fragColor = vec4(ambient * objectColor);\n"
+        "    vec4 ambient = lightColor * 1.0;\n"
+        "    fragColor = vec4(ambient * objectColor);\n"
+        "    //fragColor = texture(sampler, text);\n"
         "}";
 
 class Shader final {

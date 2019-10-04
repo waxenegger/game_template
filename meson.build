@@ -10,10 +10,10 @@ dependencies = []
 sdlDep = dependency('SDL2', required: false)
 
 if sdlDep.found()
+   sdlImageDep = dependency('SDL2_image')
    glewDep = dependency('glew')
    assimpDep = dependency('assimp')
-   devilDep = dependency('IL')
-   dependencies = [sdlDep, glewDep, assimpDep, devilDep]
+   dependencies = [sdlDep, sdlImageDep, glewDep, assimpDep]
 else
    sdlIncDir = join_paths(WINDOWS_SDL_PATH, 'include')
    sdlLibDir = join_paths(WINDOWS_SDL_PATH, 'lib', 'x64')

@@ -5,8 +5,11 @@
 	#include <fstream>
     #include <ctype.h>
     #include <memory>
+    #include <vector>
+    #include <map>
 
     #include <SDL.h>
+    #include <SDL_image.h>
 
     #include <glm/glm.hpp>
 	#include <glm/gtc/matrix_transform.hpp>
@@ -18,7 +21,5 @@
     #include <assimp/Importer.hpp>
     #include <assimp/scene.h>
     #include <assimp/postprocess.h>
-
-	#include <vector>
 
 #endif
