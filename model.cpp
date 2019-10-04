@@ -29,7 +29,6 @@ void Model::processNode(const aiNode * node, const aiScene *scene) {
 }
 
 Mesh Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
-    // data to fill
      std::vector<Vertex> vertices;
      std::vector<unsigned int> indices;
      std::vector<Texture> textures;
@@ -37,15 +36,20 @@ Mesh Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
      for(unsigned int i = 0; i < mesh->mNumVertices; i++) {
          Vertex vertex(glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z));
 
-         vertex.normal = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
+         if (mesh->HasNormals() && mesh->mNormals->Length() == mesh->mNumVertices)
+             vertex.normal = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
 
-         if(mesh->mTextureCoords[0]) {
+         if(mesh->HasTextureCoords(0)) {
              vertex.uv = glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
          } else vertex.uv = glm::vec2(0.0f, 0.0f);
 
-         vertex.tangent = glm::vec3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
+         if (mesh->HasTangentsAndBitangents()) {
+             if (mesh->mTangents->Length() == mesh->mNumVertices)
+                 vertex.tangent = glm::vec3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
 
-         vertex.tangent = glm::vec3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
+             if (mesh->mBitangents->Length() == mesh->mNumVertices)
+                 vertex.bitTangent = glm::vec3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
+         }
 
          vertices.push_back(vertex);
      }

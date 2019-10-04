@@ -19,7 +19,8 @@ void Game::cleanUp() {
  * 3. Create OpenGl Context
  * 4. Init GLEW
  */
-bool Game::init() {
+bool Game::init(const std::string path) {
+    this->root_path = path;
     if (SDL_Init( SDL_INIT_VIDEO) < 0) {
         std::cerr << "SDL could not initialize! SDL Error: " << SDL_GetError()
                         << std::endl;
@@ -168,28 +169,12 @@ Game::~Game() {
 }
 
 void Game::createTestModels() {
-    Model * m = new Model("/tmp/batman.obj");
-    if (m->hasBeenLoaded()) {
-        m->init();
-        this->scene.push_back(std::make_unique<Entity>(m, new Shader()));
-    }
-    Model * m2 = new Model("/tmp/batman.obj");
-    if (m2->hasBeenLoaded()) {
-        m2->init();
-        Entity * ent = new Entity(m2, new Shader());
-        ent->setPosition(-1.0f, 0.0f, -2.0f);
-        ent->setScaleFactor(1.5f);
-        ent->setColor(1.0f, 0.0f, 0.0f, 0.5f);
-        this->scene.push_back(std::unique_ptr<Entity>(ent));
-    }
-    Model * m3 = new Model("/tmp/batman.obj");
-    if (m3->hasBeenLoaded()) {
-        m3->init();
-        Entity * ent = new Entity(m3, new Shader());
-        ent->setPosition(1.5f, 0.5f, 1.0f);
-        ent->setRotation(0, 180, 0);
+    Model * teapot = new Model(this->root_path + "test/teapot.obj");
+    if (teapot->hasBeenLoaded()) {
+        teapot->init();
+        Entity * ent = new Entity(teapot, new Shader());
         ent->setScaleFactor(0.5f);
-        ent->setColor(0.0f, 1.0f, 0.0f, 0.5f);
+        ent->setColor(1.0f, 0.0f, 0.0f, 0.5f);
         this->scene.push_back(std::unique_ptr<Entity>(ent));
     }
 }
@@ -197,7 +182,10 @@ void Game::createTestModels() {
 int main(int argc, char **argv) {
     Game game;
 
-    if (game.init())
+    std::string root((argc > 1) ? argv[1] : "./");
+    if (root[static_cast<int>(root.length())-1] != '/') root.append("/");
+
+    if (game.init(root))
         game.run();
 
     return 0;

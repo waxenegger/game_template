@@ -5,6 +5,7 @@
 
 class Game {
     private:
+        std::string root_path;
         int width = DEFAULT_WIDTH;
         int height = DEFAULT_HEIGHT;
 
@@ -23,7 +24,7 @@ class Game {
         void cleanUp();
 
     public:
-        bool init();
+        bool init(const std::string path = "");
         void run();
         float getAspectRatio() const;
         void toggleWireframe();
