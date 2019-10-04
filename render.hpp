@@ -7,11 +7,32 @@
 static const int DEFAULT_WIDTH = 640;
 static const int DEFAULT_HEIGHT = 480;
 
+class Texture {
+    private:
+        std::string type;
+        std::string path;
+    public:
+        std::string getType() {
+            return this->type;
+        }
+        std::string getPath() {
+            return this->path;
+        }
+        void setType(std::string & type) {
+            this->type = type;
+        }
+        void setPath(std::string & path) {
+            this->path = path;
+        }
+};
+
 class Vertex {
 public:
     glm::vec3 position;
     glm::vec3 normal;
     glm::vec2 uv;
+    glm::vec3 tangent;
+    glm::vec3 bitTangent;
 
     Vertex(glm::vec3 position) {
         this->position = position;
@@ -22,11 +43,13 @@ class Mesh {
     public:
         std::vector<Vertex> vertices;
         std::vector<unsigned int> indices;
+        std::vector<Texture> textures;
         GLuint VAO = 0, VBO = 0, EBO = 0;
 
-        Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices) {
+        Mesh(std::vector<Vertex> & vertices, std::vector<unsigned int> & indices, std::vector<Texture> & textures) {
             this->vertices = vertices;
             this->indices = indices;
+            this->textures = textures;
         }
         void init();
         void render();
@@ -40,6 +63,8 @@ class Model {
         bool loaded = false;
         bool initialized = false;
 
+        void processNode(const aiNode * node, const aiScene *scene);
+        Mesh processMesh(const aiMesh *mesh, const aiScene *scene);
     public:
         ~Model() { this->cleanUp();}
         Model() {};

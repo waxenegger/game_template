@@ -5,7 +5,7 @@ Model::Model(const std::string & file) {
     Assimp::Importer importer;
 
     const aiScene *scene = importer.ReadFile(file.c_str(),
-            aiProcessPreset_TargetRealtime_MaxQuality);
+            aiProcess_Triangulate | aiProcessPreset_TargetRealtime_MaxQuality);
 
     if (scene == nullptr) {
         std::cerr << importer.GetErrorString() << std::endl;
@@ -13,30 +13,67 @@ Model::Model(const std::string & file) {
     }
 
     if (scene->HasMeshes()) {
-        for (unsigned int m = 0; m < scene->mNumMeshes; m++) {
-            const aiMesh * someMesh = scene->mMeshes[m];
-            std::vector<Vertex> vertices;
-            std::vector<unsigned int> indices;
-
-            for (unsigned int t = 0; t < someMesh->mNumVertices; ++t) {
-                const aiVector3D someVec = someMesh->mVertices[t];
-                vertices.push_back(
-                        Vertex(glm::vec3(someVec.x, someVec.y, someVec.z)));
-            }
-
-            for (unsigned int t = 0; t < someMesh->mNumFaces; t++) {
-                const struct aiFace face = someMesh->mFaces[t];
-
-                for (unsigned int i = 0; i < face.mNumIndices; i++) {
-                    int index = face.mIndices[i];
-                    indices.push_back(index);
-                }
-            }
-
-            this->meshes.push_back(Mesh(vertices, indices));
-        }
+        this->processNode(scene->mRootNode, scene);
         this->loaded = true;
     } else std::cerr << "Model does not contain meshes" << std::endl;
+}
+
+void Model::processNode(const aiNode * node, const aiScene *scene) {
+    for(unsigned int i = 0; i < node->mNumMeshes; i++) {
+        aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+        this->meshes.push_back(this->processMesh(mesh, scene));
+    }
+    for(unsigned int i = 0; i < node->mNumChildren; i++) {
+        processNode(node->mChildren[i], scene);
+    }
+}
+
+Mesh Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
+    // data to fill
+     std::vector<Vertex> vertices;
+     std::vector<unsigned int> indices;
+     std::vector<Texture> textures;
+
+     for(unsigned int i = 0; i < mesh->mNumVertices; i++) {
+         Vertex vertex(glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z));
+
+         vertex.normal = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
+
+         if(mesh->mTextureCoords[0]) {
+             vertex.uv = glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
+         } else vertex.uv = glm::vec2(0.0f, 0.0f);
+
+         vertex.tangent = glm::vec3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
+
+         vertex.tangent = glm::vec3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
+
+         vertices.push_back(vertex);
+     }
+
+     for(unsigned int i = 0; i < mesh->mNumFaces; i++) {
+         const aiFace face = mesh->mFaces[i];
+         for(unsigned int j = 0; j < face.mNumIndices; j++)
+             indices.push_back(face.mIndices[j]);
+     }
+
+     /*
+      * TODO: materials
+     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+
+     vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
+     textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+
+     vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
+     textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+
+     std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
+     textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+
+     std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
+     textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+     */
+
+     return Mesh(vertices, indices, textures);
 }
 
 void Model::init() {

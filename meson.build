@@ -12,7 +12,8 @@ sdlDep = dependency('SDL2', required: false)
 if sdlDep.found()
    glewDep = dependency('glew')
    assimpDep = dependency('assimp')
-   dependencies = [sdlDep, glewDep, assimpDep]
+   devilDep = dependency('IL')
+   dependencies = [sdlDep, glewDep, assimpDep, devilDep]
 else
    sdlIncDir = join_paths(WINDOWS_SDL_PATH, 'include')
    sdlLibDir = join_paths(WINDOWS_SDL_PATH, 'lib', 'x64')
