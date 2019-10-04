@@ -5,7 +5,8 @@
 
 class Game {
     private:
-        std::string root_path;
+        std::string root = "./";
+
         int width = DEFAULT_WIDTH;
         int height = DEFAULT_HEIGHT;
 
@@ -24,7 +25,9 @@ class Game {
         void cleanUp();
 
     public:
-        bool init(const std::string path = "");
+        Game(std::string root);
+        std::string getRoot() { return this->root; }
+        bool init();
         void run();
         float getAspectRatio() const;
         void toggleWireframe();

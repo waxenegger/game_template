@@ -1,10 +1,11 @@
 #include "render.hpp"
 
-Model::Model(const std::string & file) {
-    this->id = file;
+Model::Model(const std::string & dir, const std::string & file) {
+    this->file = std::string(dir + file);
+    this->dir = dir;
     Assimp::Importer importer;
 
-    const aiScene *scene = importer.ReadFile(file.c_str(),
+    const aiScene *scene = importer.ReadFile(this->file.c_str(),
             aiProcess_Triangulate | aiProcessPreset_TargetRealtime_MaxQuality);
 
     if (scene == nullptr) {
@@ -83,7 +84,7 @@ void Model::addTextures(const aiMaterial * mat, const aiTextureType type, const 
         else {
             Texture texture;
             texture.setType(name);
-            texture.setPath(str.C_Str());
+            texture.setPath(this->dir + std::string(str.C_Str()));
             textures.push_back(texture);
             TEXTURES[str.C_Str()] = texture;
         }

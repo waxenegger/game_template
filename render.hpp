@@ -60,7 +60,8 @@ class Mesh {
 
 class Model {
     private:
-        std::string id;
+        std::string file;
+        std::string dir;
         std::vector<Mesh> meshes;
         bool loaded = false;
         bool initialized = false;
@@ -71,7 +72,7 @@ class Model {
     public:
         ~Model() { this->cleanUp();}
         Model() {};
-        Model(const std::string & file);
+        Model(const std::string & dir, const std::string & file);
         void init();
         void render();
         void cleanUp();
@@ -109,7 +110,7 @@ static const std::string DEFAULT_FRAGMENT_SHADER = "#version 300 es\n"
         "void main() {\n"
         "    vec4 ambient = lightColor * 1.0;\n"
         "    fragColor = vec4(ambient * objectColor);\n"
-        "    //fragColor = texture(sampler, text);\n"
+        "    //fragColor = vec4(ambient * objectColor) * texture(sampler, text);\n"
         "}";
 
 class Shader final {

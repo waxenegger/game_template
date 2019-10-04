@@ -1,5 +1,10 @@
 #include "game.hpp"
 
+Game::Game(std::string root) {
+    this->root = root;
+    if (this->root[static_cast<int>(root.length())-1] != '/') this->root.append("/");
+}
+
 /*
  * Cleans Up Resources:
  * - OpenGL Context
@@ -19,8 +24,7 @@ void Game::cleanUp() {
  * 3. Create OpenGl Context
  * 4. Init GLEW
  */
-bool Game::init(const std::string path) {
-    this->root_path = path;
+bool Game::init() {
     if (SDL_Init( SDL_INIT_VIDEO) < 0) {
         std::cerr << "SDL could not initialize! SDL Error: " << SDL_GetError()
                         << std::endl;
@@ -169,8 +173,8 @@ Game::~Game() {
 }
 
 void Game::createTestModels() {
-    Model * teapot = new Model(this->root_path + "test/teapot.obj");
-    //Model * teapot = new Model("/tmp/batman.obj");
+    //Model * teapot = new Model(this->root, "test/teapot.obj");
+    Model * teapot = new Model(this->root, "batman.obj");
     if (teapot->hasBeenLoaded()) {
         teapot->init();
         Entity * ent = new Entity(teapot, new Shader());
@@ -181,12 +185,8 @@ void Game::createTestModels() {
 }
 
 int main(int argc, char **argv) {
-    Game game;
-
-    std::string root((argc > 1) ? argv[1] : "./");
-    if (root[static_cast<int>(root.length())-1] != '/') root.append("/");
-
-    if (game.init(root)) game.run();
+    Game game((argc > 1) ? std::string(argv[1]) : "");
+    if (game.init()) game.run();
 
     TEXTURES.clear();
 

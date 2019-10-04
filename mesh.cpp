@@ -19,14 +19,17 @@ void Mesh::init() {
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
 
     for (auto & texure : this->textures) {
-        SDL_Surface * textureSurface = IMG_Load(texure.getPath().c_str());
+        const std::string textureLocation(texure.getPath());
+        SDL_Surface * textureSurface = IMG_Load(textureLocation.c_str());
         if(textureSurface != nullptr) {
             glGenTextures(1, &this->TEXTURE_ID);
+            glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, this->TEXTURE_ID);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureSurface->w, textureSurface->h, 0, GL_RGBA,
                     GL_UNSIGNED_BYTE, textureSurface->pixels);
-        }
-        SDL_FreeSurface(textureSurface);
+            SDL_FreeSurface(textureSurface);
+        } else std::cerr << "Failed to load texture: " << textureLocation << std::endl;
+
     }
 
     glEnableVertexAttribArray(2);
@@ -36,7 +39,6 @@ void Mesh::init() {
 void Mesh::render() {
     glBindVertexArray(this->VAO);
     glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
-    glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(0);
 }
 
