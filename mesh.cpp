@@ -20,24 +20,36 @@ void Mesh::init() {
 
     for (auto & texure : this->textures) {
         const std::string textureLocation(texure.getPath());
+        std::cout << textureLocation << std::endl;
         SDL_Surface * textureSurface = IMG_Load(textureLocation.c_str());
         if(textureSurface != nullptr) {
-            glGenTextures(1, &this->TEXTURE_ID);
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, this->TEXTURE_ID);
+            GLuint id = 0;
+            glGenTextures(1, &id);
+            texure.setId(id);
+            glBindTexture(GL_TEXTURE_2D, texure.getId());
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureSurface->w, textureSurface->h, 0, GL_RGBA,
                     GL_UNSIGNED_BYTE, textureSurface->pixels);
+            glGenerateMipmap(GL_TEXTURE_2D);
             SDL_FreeSurface(textureSurface);
         } else std::cerr << "Failed to load texture: " << textureLocation << std::endl;
-
     }
 
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
 }
 
-void Mesh::render() {
+void Mesh::render(Shader * shader) {
     glBindVertexArray(this->VAO);
+    for (size_t i = 0;i<this->textures.size();i++) {
+        shader->setInt("sampler", i);
+        glActiveTexture(GL_TEXTURE0+i);
+        glBindTexture(GL_TEXTURE_2D, this->textures[i].getId());
+        i++;
+    }
     glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }
@@ -49,5 +61,5 @@ void Mesh::cleanUp() {
     glDeleteVertexArrays(1, &this->VAO);
     glDeleteBuffers(1, &this->VBO);
     glDeleteBuffers(1, &this->EBO);
-    glDeleteTextures(1, &this->TEXTURE_ID);
+    for (auto & texture : this->textures) texture.cleanUp();
 }

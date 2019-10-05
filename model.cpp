@@ -55,12 +55,6 @@ Mesh Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
          vertices.push_back(vertex);
      }
 
-     for(unsigned int i = 0; i < mesh->mNumFaces; i++) {
-         const aiFace face = mesh->mFaces[i];
-         for(unsigned int j = 0; j < face.mNumIndices; j++)
-             indices.push_back(face.mIndices[j]);
-     }
-
      if (scene->HasMaterials()) {
          const aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
@@ -68,6 +62,12 @@ Mesh Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
          this->addTextures(material, aiTextureType_SPECULAR, "texture_specular", textures);
          this->addTextures(material, aiTextureType_HEIGHT, "texture_normal", textures);
          this->addTextures(material, aiTextureType_AMBIENT, "texture_height", textures);
+     }
+
+     for(unsigned int i = 0; i < mesh->mNumFaces; i++) {
+         const aiFace face = mesh->mFaces[i];
+         for(unsigned int j = 0; j < face.mNumIndices; j++)
+             indices.push_back(face.mIndices[j]);
      }
 
      return Mesh(vertices, indices, textures);
@@ -78,13 +78,15 @@ void Model::addTextures(const aiMaterial * mat, const aiTextureType type, const 
         aiString str;
         mat->GetTexture(type, i, &str);
 
-        std::map<std::string, Texture>::iterator val(TEXTURES.find(str.C_Str()));
+        const std::string fullyQualifiedName(this->dir + std::string(str.C_Str()));
+
+        std::map<std::string, Texture>::iterator val(TEXTURES.find(fullyQualifiedName));
 
         if (val != TEXTURES.end()) textures.push_back(val->second);
         else {
             Texture texture;
             texture.setType(name);
-            texture.setPath(this->dir + std::string(str.C_Str()));
+            texture.setPath(fullyQualifiedName);
             textures.push_back(texture);
             TEXTURES[str.C_Str()] = texture;
         }
@@ -99,10 +101,10 @@ void Model::init() {
     this->initialized = true;
 }
 
-void Model::render() {
+void Model::render(Shader * shader) {
     if (!this->initialized) return;
 
-    for (auto & mesh : this->meshes) mesh.render();
+    for (auto & mesh : this->meshes) mesh.render(shader);
 }
 
 void Model::cleanUp() {

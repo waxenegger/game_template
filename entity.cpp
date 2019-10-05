@@ -34,7 +34,7 @@ void Entity::render() {
 		}
 	}
 
-    if (this->model != nullptr) this->model->render();
+    if (this->model != nullptr) this->model->render(this->shader);
 
     if (this->shader != nullptr) this->shader->stopUse();
 }

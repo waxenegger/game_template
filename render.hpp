@@ -9,14 +9,22 @@ static const int DEFAULT_HEIGHT = 480;
 
 class Texture {
     private:
+        // TODO: check impact of id binding...
+        unsigned int id;
         std::string type;
         std::string path;
     public:
+        unsigned int getId() {
+            return this->id;
+        }
         std::string getType() {
             return this->type;
         }
         std::string getPath() {
             return this->path;
+        }
+        void setId(const unsigned int type) {
+            this->id = id;
         }
         void setType(const std::string & type) {
             this->type = type;
@@ -24,78 +32,25 @@ class Texture {
         void setPath(const std::string & path) {
             this->path = path;
         }
+        void cleanUp() {
+            glDeleteTextures(1, &this->id);
+        }
 };
 
 static std::map<std::string, Texture> TEXTURES;
 
-class Vertex {
-public:
-    glm::vec3 position;
-    glm::vec3 normal;
-    glm::vec2 uv;
-    glm::vec3 tangent;
-    glm::vec3 bitTangent;
-
-    Vertex(glm::vec3 position) {
-        this->position = position;
-    }
-};
-
-class Mesh {
-    public:
-        std::vector<Vertex> vertices;
-        std::vector<unsigned int> indices;
-        std::vector<Texture> textures;
-        GLuint VAO = 0, VBO = 0, EBO = 0, TEXTURE_ID = 0;
-
-        Mesh(std::vector<Vertex> & vertices, std::vector<unsigned int> & indices, std::vector<Texture> & textures) {
-            this->vertices = vertices;
-            this->indices = indices;
-            this->textures = textures;
-        }
-        void init();
-        void render();
-        void cleanUp();
-};
-
-class Model {
-    private:
-        std::string file;
-        std::string dir;
-        std::vector<Mesh> meshes;
-        bool loaded = false;
-        bool initialized = false;
-
-        void processNode(const aiNode * node, const aiScene *scene);
-        Mesh processMesh(const aiMesh *mesh, const aiScene *scene);
-        void addTextures(const aiMaterial * mat, const aiTextureType type, const std::string name, std::vector<Texture> & textures);
-    public:
-        ~Model() { this->cleanUp();}
-        Model() {};
-        Model(const std::string & dir, const std::string & file);
-        void init();
-        void render();
-        void cleanUp();
-        bool hasBeenLoaded() {
-            return this->loaded;
-        };
-        bool hasBeenInitialized() {
-            return this->initialized;
-        };
-};
-
 static const int NUM_SHADERS = 2;
 static const std::string DEFAULT_VERTEX_SHADER =
         "#version 300 es\n"
-		"in vec3 position;\n"
+        "in vec3 position;\n"
         "in vec3 normal;\n"
         "in vec2 uv;\n"
         "out vec2 text;\n"
-		"uniform mat4 model;\n"
-		"uniform mat4 view;\n"
-		"uniform mat4 projection;\n"
-		"void main() {\n"
-		"    gl_Position = projection * view * model * vec4(position, 1.0);\n"
+        "uniform mat4 model;\n"
+        "uniform mat4 view;\n"
+        "uniform mat4 projection;\n"
+        "void main() {\n"
+        "    gl_Position = projection * view * model * vec4(position, 1.0);\n"
         "    text = uv;\n"
         "}";
 static const std::string DEFAULT_FRAGMENT_SHADER = "#version 300 es\n"
@@ -109,8 +64,8 @@ static const std::string DEFAULT_FRAGMENT_SHADER = "#version 300 es\n"
         "out vec4 fragColor;\n"
         "void main() {\n"
         "    vec4 ambient = lightColor * 1.0;\n"
-        "    fragColor = vec4(ambient * objectColor);\n"
-        "    //fragColor = vec4(ambient * objectColor) * texture(sampler, text);\n"
+        "    //fragColor = vec4(ambient * objectColor);\n"
+        "    fragColor = vec4(ambient) * texture2D(sampler, text);\n"
         "}";
 
 class Shader final {
@@ -154,6 +109,62 @@ class Shader final {
         GLuint getId() const;
         void use();
         void stopUse();
+};
+
+class Vertex {
+public:
+    glm::vec3 position;
+    glm::vec3 normal;
+    glm::vec2 uv;
+    glm::vec3 tangent;
+    glm::vec3 bitTangent;
+
+    Vertex(glm::vec3 position) {
+        this->position = position;
+    }
+};
+
+class Mesh {
+    public:
+        std::vector<Vertex> vertices;
+        std::vector<unsigned int> indices;
+        std::vector<Texture> textures;
+        GLuint VAO = 0, VBO = 0, EBO = 0;
+
+        Mesh(std::vector<Vertex> & vertices, std::vector<unsigned int> & indices, std::vector<Texture> & textures) {
+            this->vertices = vertices;
+            this->indices = indices;
+            this->textures = textures;
+        }
+        void init();
+        void render(Shader * shader);
+        void cleanUp();
+};
+
+class Model {
+    private:
+        std::string file;
+        std::string dir;
+        std::vector<Mesh> meshes;
+        bool loaded = false;
+        bool initialized = false;
+
+        void processNode(const aiNode * node, const aiScene *scene);
+        Mesh processMesh(const aiMesh *mesh, const aiScene *scene);
+        void addTextures(const aiMaterial * mat, const aiTextureType type, const std::string name, std::vector<Texture> & textures);
+    public:
+        ~Model() { this->cleanUp();}
+        Model() {};
+        Model(const std::string & dir, const std::string & file);
+        void init();
+        void render(Shader * shader);
+        void cleanUp();
+        bool hasBeenLoaded() {
+            return this->loaded;
+        };
+        bool hasBeenInitialized() {
+            return this->initialized;
+        };
 };
 
 class Camera final {
