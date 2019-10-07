@@ -34,6 +34,25 @@ Mesh Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
      std::vector<unsigned int> indices;
      std::vector<Texture> textures;
 
+     std::unique_ptr<aiColor4D> ambient(new aiColor4D());
+     std::unique_ptr<aiColor4D> diffuse(new aiColor4D());
+     std::unique_ptr<aiColor4D> specular(new aiColor4D());
+
+     if (scene->HasMaterials()) {
+         const aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+
+         aiGetMaterialColor(material, AI_MATKEY_COLOR_AMBIENT, ambient.get());
+         aiGetMaterialColor(material, AI_MATKEY_COLOR_DIFFUSE, diffuse.get());
+         aiGetMaterialColor(material, AI_MATKEY_COLOR_SPECULAR, specular.get());
+
+         this->addTextures(material, aiTextureType_DIFFUSE, "texture_diffuse", textures);
+         this->addTextures(material, aiTextureType_SPECULAR, "texture_specular", textures);
+         this->addTextures(material, aiTextureType_HEIGHT, "texture_normal", textures);
+         this->addTextures(material, aiTextureType_AMBIENT, "texture_height", textures);
+
+
+     }
+
      for(unsigned int i = 0; i < mesh->mNumVertices; i++) {
          Vertex vertex(glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z));
 
@@ -52,16 +71,11 @@ Mesh Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
                  vertex.bitTangent = glm::vec3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
          }
 
+         if (ambient != nullptr) vertex.colorAmbient = glm::vec3(ambient->r, ambient->g, ambient->b);
+         if (diffuse != nullptr) vertex.colorDiffuse = glm::vec3(diffuse->r, diffuse->g, diffuse->b);
+         if (specular != nullptr) vertex.colorSpecular = glm::vec3(specular->r, specular->g, specular->b);
+
          vertices.push_back(vertex);
-     }
-
-     if (scene->HasMaterials()) {
-         const aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-
-         this->addTextures(material, aiTextureType_DIFFUSE, "texture_diffuse", textures);
-         this->addTextures(material, aiTextureType_SPECULAR, "texture_specular", textures);
-         this->addTextures(material, aiTextureType_HEIGHT, "texture_normal", textures);
-         this->addTextures(material, aiTextureType_AMBIENT, "texture_height", textures);
      }
 
      for(unsigned int i = 0; i < mesh->mNumFaces; i++) {

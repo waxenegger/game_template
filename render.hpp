@@ -9,13 +9,12 @@ static const int DEFAULT_HEIGHT = 480;
 
 class Texture {
     private:
-        // TODO: check impact of id binding...
-        unsigned int id;
+        unsigned int id = 0;
         std::string type;
         std::string path;
     public:
         unsigned int getId() {
-            return this->id;
+            return  this->id;
         }
         std::string getType() {
             return this->type;
@@ -23,7 +22,7 @@ class Texture {
         std::string getPath() {
             return this->path;
         }
-        void setId(const unsigned int type) {
+        void setId(const unsigned int & id) {
             this->id = id;
         }
         void setType(const std::string & type) {
@@ -45,27 +44,46 @@ static const std::string DEFAULT_VERTEX_SHADER =
         "in vec3 position;\n"
         "in vec3 normal;\n"
         "in vec2 uv;\n"
+        "in vec3 mat_ambient;\n"
+        "in vec3 mat_diffuse;\n"
+        "in vec3 mat_specular;\n"
         "out vec2 text;\n"
+        "out vec3 norm;\n"
+        "out vec3 matAmbient;\n"
+        "out vec3 matDiffuse;\n"
+        "out vec3 matSpecular;\n"
         "uniform mat4 model;\n"
         "uniform mat4 view;\n"
         "uniform mat4 projection;\n"
         "void main() {\n"
         "    gl_Position = projection * view * model * vec4(position, 1.0);\n"
         "    text = uv;\n"
+        "    norm = normalize(vec3(transpose(inverse(model)) * vec4(normal, 1.0f)));\n"
+        "    matAmbient = mat_ambient;\n"
+        "    matDiffuse = mat_diffuse;\n"
+        "    matSpecular = mat_specular;\n"
         "}";
 static const std::string DEFAULT_FRAGMENT_SHADER = "#version 300 es\n"
         "#ifdef GL_ES\n"
         "precision highp float;\n"
         "#endif\n"
         "in vec2 text;\n"
+        "in vec3 norm;\n"
+        "in vec3 matAmbient;\n"
+        "in vec3 matDiffuse;\n"
+        "in vec3 matSpecular;\n"
         "uniform vec4 lightColor;\n"
         "uniform vec4 objectColor;\n"
         "uniform sampler2D sampler;\n"
         "out vec4 fragColor;\n"
         "void main() {\n"
-        "    vec4 ambient = lightColor * 1.0;\n"
+        "    vec4 ambient = lightColor * texture2D(sampler, text);\n"
+        "    //vec3 light_vector = normalize(-vec3(1.0));\n"
+        "    //float diff = max(dot(norm, light_vector), 0.0f);\n"
+        "    //qvec3 diffuse = vec3(1.0) * diff * vec3(texture2D(sampler, text));\n"
         "    //fragColor = vec4(ambient * objectColor);\n"
-        "    fragColor = vec4(ambient) * texture2D(sampler, text);\n"
+        "    //fragColor = ambient + vec4(diffuse, 1.0);\n"
+        "    fragColor = ambient;\n"
         "}";
 
 class Shader final {
@@ -116,8 +134,13 @@ public:
     glm::vec3 position;
     glm::vec3 normal;
     glm::vec2 uv;
+
     glm::vec3 tangent;
     glm::vec3 bitTangent;
+
+    glm::vec3 colorAmbient;
+    glm::vec3 colorDiffuse;
+    glm::vec3 colorSpecular;
 
     Vertex(glm::vec3 position) {
         this->position = position;
