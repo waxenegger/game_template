@@ -20,11 +20,12 @@ Model::Model(const std::string & dir, const std::string & file) {
 }
 
 void Model::processNode(const aiNode * node, const aiScene *scene) {
-    for(unsigned int i = 0; i < node->mNumMeshes; i++) {
+    for(unsigned int i=0; i < node->mNumMeshes; i++) {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
         this->meshes.push_back(this->processMesh(mesh, scene));
     }
-    for(unsigned int i = 0; i < node->mNumChildren; i++) {
+
+    for(unsigned int i=0; i<node->mNumChildren; i++) {
         processNode(node->mChildren[i], scene);
     }
 }
@@ -47,10 +48,8 @@ Mesh Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
 
          this->addTextures(material, aiTextureType_DIFFUSE, "texture_diffuse", textures);
          this->addTextures(material, aiTextureType_SPECULAR, "texture_specular", textures);
-         this->addTextures(material, aiTextureType_HEIGHT, "texture_normal", textures);
+         //this->addTextures(material, aiTextureType_HEIGHT, "texture_normal", textures);
          this->addTextures(material, aiTextureType_AMBIENT, "texture_height", textures);
-
-
      }
 
      for(unsigned int i = 0; i < mesh->mNumVertices; i++) {

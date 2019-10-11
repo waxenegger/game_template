@@ -63,7 +63,8 @@ static const std::string DEFAULT_VERTEX_SHADER =
         "    matDiffuse = mat_diffuse;\n"
         "    matSpecular = mat_specular;\n"
         "}";
-static const std::string DEFAULT_FRAGMENT_SHADER = "#version 300 es\n"
+static const std::string DEFAULT_FRAGMENT_SHADER =
+        "#version 300 es\n"
         "#ifdef GL_ES\n"
         "precision highp float;\n"
         "#endif\n"

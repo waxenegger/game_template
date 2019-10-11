@@ -15,6 +15,8 @@ void Shader::init(const std::string & file_name) {
         glAttachShader(this->m_program, this->m_shaders[i]);
 
     glBindAttribLocation(this->m_program, 0, "position");
+    glBindAttribLocation(this->m_program, 1, "normal");
+    glBindAttribLocation(this->m_program, 2, "uv");
 
     glLinkProgram(this->m_program);
     this->checkForError(this->m_program, GL_LINK_STATUS, true,

@@ -174,7 +174,7 @@ Game::~Game() {
 
 void Game::createTestModels() {
     //Model * teapot = new Model(this->root, "test/teapot.obj");
-    Model * teapot = new Model(this->root, "batman.obj");
+    Model * teapot = new Model(this->root, "nanosuit.obj");
     if (teapot->hasBeenLoaded()) {
         teapot->init();
         Entity * ent = new Entity(teapot, new Shader());
