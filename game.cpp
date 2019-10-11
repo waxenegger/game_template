@@ -80,7 +80,7 @@ void Game::run() {
     SDL_StartTextInput();
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
-    std::unique_ptr<Camera> camera(Camera::instance(-5.0f, 0.0f, -5.0f));
+    std::unique_ptr<Camera> camera(Camera::instance(-5.0f, 3.5f, -5.0f));
 
     this->createTestModels();
 
@@ -98,11 +98,24 @@ void Game::run() {
                         e.motion.xrel, e.motion.yrel, this->frameDuration);
                 break;
 
+            case SDL_MOUSEWHEEL:
+            {
+                const Sint32 delta = e.wheel.y * (e.wheel.direction == SDL_MOUSEWHEEL_NORMAL ? 1 : -1);
+                float newFovy = camera->getFieldOfViewY() - delta * 2;
+                if (newFovy < 1) newFovy = 1;
+                else if (newFovy > 45) newFovy = 45;
+                camera->setFieldOfViewY(newFovy);
+                camera->setPerspective(
+                        glm::perspective(glm::radians(camera->getFieldOfViewY()),
+                                this->getAspectRatio(), 0.01f, 1000.0f));
+                break;
+            }
             case SDL_WINDOWEVENT:
                 if(e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
                     this->resize(e.window.data1, e.window.data2);
                     camera->setPerspective(
-                            glm::perspective(glm::radians(45.0f), this->getAspectRatio(), 0.01f, 1000.0f));
+                            glm::perspective(glm::radians(camera->getFieldOfViewY()),
+                                    this->getAspectRatio(), 0.01f, 1000.0f));
                 }
                 break;
 
@@ -178,8 +191,8 @@ void Game::createTestModels() {
     if (teapot->hasBeenLoaded()) {
         teapot->init();
         Entity * ent = new Entity(teapot, new Shader());
-        ent->setScaleFactor(0.5f);
-        ent->setColor(1.0f, 0.0f, 0.0f, 0.5f);
+        ent->setScaleFactor(0.25f);
+        ent->setColor(1.0f, 1.0f, 1.0f, 0.5f);
         this->scene.push_back(std::unique_ptr<Entity>(ent));
     }
 }

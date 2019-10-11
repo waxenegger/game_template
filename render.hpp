@@ -197,14 +197,16 @@ class Camera final {
         const float SENSITIVITY_DIRECTION_CHANGE = 0.0005f;
         const float SENSITIVITY_POSITION_CHANGE = 0.05f;
 
+        float pitch = glm::asin(1);
+        float yaw = glm::atan(0.0f, 0.0f);
+        float fovy = 45.0f;
+
         glm::vec3 position = glm::vec3(1.0f);
         glm::vec3 direction = glm::vec3(0.001f, 0.0f, 0.001f);
-        glm::mat4 perspective = glm::perspective(glm::radians(45.0f),
+        glm::mat4 perspective = glm::perspective(glm::radians(fovy),
                 static_cast<float>(DEFAULT_WIDTH)
                 / static_cast<float>(DEFAULT_HEIGHT), 0.01f, 1000.0f);
         const glm::vec3 upVector = glm::vec3(0.0f, 1.0f, 0.0f);
-        float pitch = glm::asin(1);
-        float yaw = glm::atan(0.0f, 0.0f);
 
         Camera() {};
         Camera(const float x, const float y, const float z);
@@ -219,6 +221,8 @@ class Camera final {
                 const float frameDuration);
         void updateLocation(const char direction, const float frameDuration);
         glm::mat4 getViewMatrix();
+        float getFieldOfViewY();
+        void setFieldOfViewY(const float fovy);
         static Camera * instance() {
         	if (Camera::singleton == nullptr) Camera::singleton = new Camera();
         	return Camera::singleton;

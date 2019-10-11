@@ -87,4 +87,13 @@ glm::mat4 Camera::getViewMatrix() {
                     this->upVector);
 }
 
+float Camera::getFieldOfViewY() {
+    return this->fovy;
+}
+
+void Camera::setFieldOfViewY(const float fovy) {
+    this->fovy = fovy;
+}
+
+
 Camera * Camera::singleton = nullptr;
