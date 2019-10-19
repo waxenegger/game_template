@@ -40,6 +40,7 @@ bool Game::init() {
         glDepthMask( GL_FALSE );
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        //glEnable(GL_CULL_FACE);
 
         window = SDL_CreateWindow("Game", SDL_WINDOWPOS_UNDEFINED,
                 SDL_WINDOWPOS_UNDEFINED, this->width, this->height,
@@ -80,7 +81,7 @@ void Game::run() {
     SDL_StartTextInput();
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
-    std::unique_ptr<Camera> camera(Camera::instance(-5.0f, 3.5f, -5.0f));
+    std::unique_ptr<Camera> camera(Camera::instance(-5.0f, 0.0f, -5.0f));
 
     this->createTestModels();
 
@@ -187,7 +188,7 @@ Game::~Game() {
 
 void Game::createTestModels() {
     //Model * teapot = new Model(this->root, "test/teapot.obj");
-    Model * teapot = new Model(this->root, "nanosuit.obj");
+    Model * teapot = new Model(this->root, "batman.obj");
     if (teapot->hasBeenLoaded()) {
         teapot->init();
         Entity * ent = new Entity(teapot, new Shader());

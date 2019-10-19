@@ -48,7 +48,7 @@ Mesh Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
 
          this->addTextures(material, aiTextureType_DIFFUSE, "texture_diffuse", textures);
          this->addTextures(material, aiTextureType_SPECULAR, "texture_specular", textures);
-         //this->addTextures(material, aiTextureType_HEIGHT, "texture_normal", textures);
+         this->addTextures(material, aiTextureType_HEIGHT, "texture_normal", textures);
          this->addTextures(material, aiTextureType_AMBIENT, "texture_height", textures);
      }
 

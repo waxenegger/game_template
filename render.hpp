@@ -75,10 +75,12 @@ static const std::string DEFAULT_FRAGMENT_SHADER =
         "in vec3 matSpecular;\n"
         "uniform vec4 lightColor;\n"
         "uniform vec4 objectColor;\n"
-        "uniform sampler2D sampler;\n"
+        "uniform sampler2D sampler0;\n"
+        "uniform sampler2D sampler1;\n"
         "out vec4 fragColor;\n"
         "void main() {\n"
-        "    vec4 ambient = lightColor * texture2D(sampler, text);\n"
+        "    vec4 ambient = lightColor * texture2D(sampler0, text);\n"
+        "    vec4 specular = texture2D(sampler1, text);\n"
         "    //vec3 light_vector = normalize(-vec3(1.0));\n"
         "    //float diff = max(dot(norm, light_vector), 0.0f);\n"
         "    //qvec3 diffuse = vec3(1.0) * diff * vec3(texture2D(sampler, text));\n"
@@ -155,6 +157,8 @@ class Mesh {
         std::vector<Texture> textures;
         GLuint VAO = 0, VBO = 0, EBO = 0;
 
+        Mesh() {};
+
         Mesh(std::vector<Vertex> & vertices, std::vector<unsigned int> & indices, std::vector<Texture> & textures) {
             this->vertices = vertices;
             this->indices = indices;
@@ -162,6 +166,21 @@ class Mesh {
         }
         void init();
         void render(Shader * shader);
+        void cleanUp();
+};
+
+class Terrain {
+    private:
+        Mesh mesh;
+        bool initialized = false;
+    public:
+        Terrain();
+        void init();
+        void render(Shader * shader);
+        bool hasBeenInitialized() {
+            return this->initialized;
+        };
+
         void cleanUp();
 };
 

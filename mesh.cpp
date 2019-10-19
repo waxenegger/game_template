@@ -27,14 +27,15 @@ void Mesh::init() {
             glGenTextures(1, &id);
             texure.setId(id);
             glBindTexture(GL_TEXTURE_2D, texure.getId());
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureSurface->w, textureSurface->h, 0, GL_RGBA,
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, textureSurface->w, textureSurface->h, 0, GL_RGB,
                     GL_UNSIGNED_BYTE, textureSurface->pixels);
             glGenerateMipmap(GL_TEXTURE_2D);
             SDL_FreeSurface(textureSurface);
+            glBindTexture(GL_TEXTURE_2D, 0);
         } else std::cerr << "Failed to load texture: " << textureLocation << std::endl;
     }
 
@@ -45,13 +46,15 @@ void Mesh::init() {
 void Mesh::render(Shader * shader) {
     glBindVertexArray(this->VAO);
     for (size_t i = 0;i<this->textures.size();i++) {
-        shader->setInt("sampler", i);
+        shader->setInt("sampler"+i, i);
         glActiveTexture(GL_TEXTURE0+i);
         glBindTexture(GL_TEXTURE_2D, this->textures[i].getId());
         i++;
     }
     glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
+
+    glActiveTexture(GL_TEXTURE0);
 }
 
 void Mesh::cleanUp() {
