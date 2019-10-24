@@ -41,6 +41,13 @@ void Camera::updateDirection(const float deltaX, const float  deltaY, const floa
     this->yaw = glm::atan(this->getDirection().z, this->getDirection().x) +
         deltaX * SENSITIVITY_DIRECTION_CHANGE * frameDuration;
 
+    const float ninetyDegrees = glm::pi<float>() / 2;
+    if (glm::abs(this->pitch) == 0.0f) this->pitch = 0.000001f;
+    else if (glm::abs(this->pitch) >= ninetyDegrees) this->pitch = ninetyDegrees * (this->pitch < 0 ? -0.999999f : 0.999999f);
+
+    if (glm::abs(this->yaw) == 0.0f) this->pitch = 0.000001f;
+    else if (glm::abs(this->yaw) == ninetyDegrees) this->yaw *= (this->yaw < 0 ? -0.999999f : 0.999999f);
+
     this->setDirection(
         glm::cos(this->pitch) * glm::cos(this->yaw), glm::sin(this->pitch), glm::cos(this->pitch) * glm::sin(this->yaw));
 
@@ -55,8 +62,10 @@ void Camera::updateLocation(const char direction, const float frameDuration) {
     this->pitch = glm::asin(this->getDirection().y);
     this->yaw = glm::atan(this->getDirection().z, this->getDirection().x);
 
-    float deltaXRot = glm::cos(this->pitch) * glm::cos(this->yaw);
-    float deltaYRot = glm::cos(this->pitch) * glm::sin(this->yaw);
+    //float deltaXRot = glm::cos(this->pitch) * glm::cos(this->yaw);
+    //float deltaYRot = glm::cos(this->pitch) * glm::sin(this->yaw);
+    float deltaXRot = glm::cos(this->yaw);
+    float deltaYRot = glm::sin(this->yaw);
 
     float deltaXMove = glm::cos(this->yaw - glm::pi<float>() / 2);
     float deltaYMove = glm::sin(this->yaw - glm::pi<float>() / 2);

@@ -81,9 +81,11 @@ void Game::run() {
     SDL_StartTextInput();
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
-    std::unique_ptr<Camera> camera(Camera::instance(-5.0f, 0.0f, -5.0f));
+    if (this->terrain == nullptr) {
+        this->terrain = new Terrain(this->root);
+        this->terrain->init();
 
-    this->terrain.init();
+    }
     this->createTestModels();
 
     while (!quit) {
@@ -137,7 +139,7 @@ void Game::run() {
         this->render();
     }
 
-    this->terrain.cleanUp();
+    this->terrain->cleanUp();
     for (auto & entity : this->scene) entity->cleanUp();
 
     SDL_StopTextInput();
@@ -155,7 +157,7 @@ void Game::render() {
 
     this->clearScreen(0, 0, 0, 0);
 
-    this->terrain.render();
+    this->terrain->render();
     for (auto & entity : this->scene) entity->render();
 
     SDL_GL_SwapWindow(window);
@@ -186,17 +188,18 @@ float Game::getLastFrameDuration() const {
 }
 
 Game::~Game() {
+    if (this->camera != nullptr) delete this->camera;
+    if (this->terrain != nullptr) delete this->terrain;
     cleanUp();
 }
 
 void Game::createTestModels() {
-    //Model * teapot = new Model(this->root, "test/teapot.obj");
-    Model * teapot = new Model(this->root, "batman.obj");
+    Model * teapot = new Model(this->root, "test/teapot.obj");
     if (teapot->hasBeenLoaded()) {
         teapot->init();
         Entity * ent = new Entity(teapot, new Shader());
-        ent->setScaleFactor(0.25f);
-        ent->setColor(1.0f, 1.0f, 1.0f, 0.5f);
+        ent->setScaleFactor(1.0f);
+        ent->setColor(1.0f, 1.0f, 1.0f, 1.0f);
         this->scene.push_back(std::unique_ptr<Entity>(ent));
     }
 }

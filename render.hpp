@@ -42,51 +42,22 @@ static const int NUM_SHADERS = 2;
 static const std::string DEFAULT_VERTEX_SHADER =
         "#version 300 es\n"
         "in vec3 position;\n"
-        "in vec3 normal;\n"
-        "in vec2 uv;\n"
-        "in vec3 mat_ambient;\n"
-        "in vec3 mat_diffuse;\n"
-        "in vec3 mat_specular;\n"
-        "out vec2 text;\n"
-        "out vec3 norm;\n"
-        "out vec3 matAmbient;\n"
-        "out vec3 matDiffuse;\n"
-        "out vec3 matSpecular;\n"
         "uniform mat4 model;\n"
         "uniform mat4 view;\n"
         "uniform mat4 projection;\n"
         "void main() {\n"
         "    gl_Position = projection * view * model * vec4(position, 1.0);\n"
-        "    text = uv;\n"
-        "    norm = normalize(vec3(transpose(inverse(model)) * vec4(normal, 1.0f)));\n"
-        "    matAmbient = mat_ambient;\n"
-        "    matDiffuse = mat_diffuse;\n"
-        "    matSpecular = mat_specular;\n"
         "}";
 static const std::string DEFAULT_FRAGMENT_SHADER =
         "#version 300 es\n"
         "#ifdef GL_ES\n"
         "precision highp float;\n"
         "#endif\n"
-        "in vec2 text;\n"
-        "in vec3 norm;\n"
-        "in vec3 matAmbient;\n"
-        "in vec3 matDiffuse;\n"
-        "in vec3 matSpecular;\n"
         "uniform vec4 lightColor;\n"
         "uniform vec4 objectColor;\n"
-        "uniform sampler2D sampler0;\n"
-        "uniform sampler2D sampler1;\n"
         "out vec4 fragColor;\n"
         "void main() {\n"
-        "    vec4 ambient = lightColor * texture2D(sampler0, text);\n"
-        "    vec4 specular = texture2D(sampler1, text);\n"
-        "    //vec3 light_vector = normalize(-vec3(1.0));\n"
-        "    //float diff = max(dot(norm, light_vector), 0.0f);\n"
-        "    //qvec3 diffuse = vec3(1.0) * diff * vec3(texture2D(sampler, text));\n"
-        "    //fragColor = vec4(ambient * objectColor);\n"
-        "    //fragColor = ambient + vec4(diffuse, 1.0);\n"
-        "    fragColor = ambient;\n"
+        "    fragColor = lightColor * objectColor;\n"
         "}";
 
 class Shader final {
@@ -172,11 +143,12 @@ class Mesh {
 
 class Terrain {
     private:
+        std::string dir;
         Mesh mesh;
         Shader * terrainShader = nullptr;
         bool initialized = false;
     public:
-        Terrain();
+        Terrain(const std::string & dir);
         void init();
         void render();
         void render(Shader * shader);

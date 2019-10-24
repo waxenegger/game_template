@@ -48,7 +48,6 @@ std::string Shader::read(const int type) const {
             getline(file, line);
             output.append(line + "\n");
         }
-        //cout << output << endl;
     } else
         std::cerr << "Unable to read shader: " << this->m_file_name
         << std::endl;

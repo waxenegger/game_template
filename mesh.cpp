@@ -45,12 +45,16 @@ void Mesh::init() {
 
 void Mesh::render(Shader * shader) {
     glBindVertexArray(this->VAO);
-    for (size_t i = 0;i<this->textures.size();i++) {
-        shader->setInt("sampler"+i, i);
-        glActiveTexture(GL_TEXTURE0+i);
-        glBindTexture(GL_TEXTURE_2D, this->textures[i].getId());
-        i++;
+
+    if (shader != nullptr && shader->isBeingUsed()) {
+        for (size_t i = 0;i<this->textures.size();i++) {
+            shader->setInt("textureSampler"+i, i);
+            glActiveTexture(GL_TEXTURE0+i);
+            glBindTexture(GL_TEXTURE_2D, this->textures[i].getId());
+            i++;
+        }
     }
+
     glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 

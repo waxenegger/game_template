@@ -1,22 +1,23 @@
 #include "render.hpp"
 
-Terrain::Terrain() {
+Terrain::Terrain(const std::string & dir) {
+    this->dir = dir;
     this->initialized = true;
     this->mesh.vertices.push_back(
-            Vertex(glm::vec3(0.0f, 0.0f, 0.0f)));
-    this->mesh.indices.push_back(0);
+            Vertex(glm::vec3(-10.0f, 0.0f, 10.0f)));
+    this->mesh.indices.push_back(2);
     this->mesh.vertices.push_back(
-            Vertex(glm::vec3(5.0f, 0.0f, 5.0f)));
+            Vertex(glm::vec3(10.0f, 0.0f, 10.0f)));
     this->mesh.indices.push_back(1);
     this->mesh.vertices.push_back(
-            Vertex(glm::vec3(-5.0f, 0.0f, -5.0f)));
-    this->mesh.indices.push_back(2);
+            Vertex(glm::vec3(0.0f, 0.0f, -10.0f)));
+    this->mesh.indices.push_back(0);
 }
 
 void Terrain::init() {
     this->mesh.init();
 
-    this->terrainShader = new Shader();
+    this->terrainShader = new Shader(std::string(this->dir + "/res/terrain"));
 
     this->initialized = true;
 }
@@ -39,11 +40,13 @@ void Terrain::render(Shader * shader) {
             shader->setMat4("projection", Camera::instance()->getPerspective());
             shader->setVec4("lightColor",  1.0f, 1.0f, 1.0f, 1.0f);
             shader->setVec4("objectColor", glm::vec4(1.0f, 0.0f, 0.0f, 0.0f));
-            shader->dumpActiveShaderAttributes();
+            //shader->dumpActiveShaderAttributes();
         }
     }
 
     this->mesh.render(shader);
+
+    if (shader != nullptr) shader->stopUse();
 }
 
 void Terrain::cleanUp() {
