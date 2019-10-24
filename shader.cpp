@@ -171,6 +171,34 @@ void Shader::stopUse() {
     }
 }
 
+void Shader::dumpActiveShaderAttributes() {
+    GLint i;
+    GLint count;
+
+    GLint size;
+    GLenum type;
+
+    const GLsizei bufSize = 16;
+    GLchar name[bufSize];
+    GLsizei length;
+
+    std::cout << "Shader: " + std::to_string(this->getId()) << std::endl;
+
+    glGetProgramiv(this->getId(), GL_ACTIVE_ATTRIBUTES, &count);
+    std::cout << "Active Attributes: " + std::to_string(count) << std::endl;
+    for (i = 0; i < count; i++) {
+        glGetActiveAttrib(this->getId(), (GLuint)i, bufSize, &length, &size, &type, name);
+        std::cout << "Attribute " + std::to_string(i) + " Type: " + std::to_string(type) + " Name: " + name << std::endl;
+    }
+
+    glGetProgramiv(this->getId(), GL_ACTIVE_UNIFORMS, &count);
+    std::cout << "Active Uniforms: " + std::to_string(count) << std::endl;
+    for (i = 0; i < count; i++) {
+        glGetActiveUniform(this->getId(), (GLuint)i, bufSize, &length, &size, &type, name);
+        std::cout << "Uniform " + std::to_string(i) + " Type: " + std::to_string(type) + " Name: " + name << std::endl;
+    }
+}
+
 Shader:: ~Shader() {
     for (unsigned int i = 0; i < NUM_SHADERS; i++) {
         glDetachShader(this->m_program, this->m_shaders[i]);

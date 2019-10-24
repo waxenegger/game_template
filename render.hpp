@@ -130,6 +130,7 @@ class Shader final {
         GLuint getId() const;
         void use();
         void stopUse();
+        void dumpActiveShaderAttributes();
 };
 
 class Vertex {
@@ -172,16 +173,19 @@ class Mesh {
 class Terrain {
     private:
         Mesh mesh;
+        Shader * terrainShader = nullptr;
         bool initialized = false;
     public:
         Terrain();
         void init();
+        void render();
         void render(Shader * shader);
         bool hasBeenInitialized() {
             return this->initialized;
         };
 
         void cleanUp();
+        ~Terrain();
 };
 
 class Model {
@@ -292,7 +296,6 @@ class Entity {
         glm::mat4 calculateTransformationMatrix();
         void render();
         void cleanUp();
-        void dumpActiveShaderAttributes();
         void setColor(const float red, const float green, const float blue, const float alpha) {
         	this->color.x = red;
         	this->color.y = green;

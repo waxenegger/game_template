@@ -83,6 +83,7 @@ void Game::run() {
 
     std::unique_ptr<Camera> camera(Camera::instance(-5.0f, 0.0f, -5.0f));
 
+    this->terrain.init();
     this->createTestModels();
 
     while (!quit) {
@@ -136,6 +137,7 @@ void Game::run() {
         this->render();
     }
 
+    this->terrain.cleanUp();
     for (auto & entity : this->scene) entity->cleanUp();
 
     SDL_StopTextInput();
@@ -153,6 +155,7 @@ void Game::render() {
 
     this->clearScreen(0, 0, 0, 0);
 
+    this->terrain.render();
     for (auto & entity : this->scene) entity->render();
 
     SDL_GL_SwapWindow(window);

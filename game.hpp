@@ -19,6 +19,7 @@ class Game {
         SDL_GLContext glContext = nullptr;
 
         std::vector<std::unique_ptr<Entity>> scene;
+        Terrain terrain;
 
         void clearScreen(float r, float g, float b, float a);
         void render();

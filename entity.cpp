@@ -30,7 +30,7 @@ void Entity::render() {
 			this->shader->setMat4("projection", Camera::instance()->getPerspective());
 			this->shader->setVec4("lightColor",  1.0f, 1.0f, 1.0f, 1.0f);
 			this->shader->setVec4("objectColor", this->color);
-			//this->dumpActiveShaderAttributes();
+			//this->shader->dumpActiveShaderAttributes();
 		}
 	}
 
@@ -49,35 +49,6 @@ glm::mat4 Entity::calculateTransformationMatrix() {
     transformation = glm::translate(transformation, this->position);
     transformation = glm::scale(transformation, glm::vec3(this->scaleFactor));
     return transformation;
-}
-
-void Entity::dumpActiveShaderAttributes() {
-    GLint i;
-    GLint count;
-
-    GLint size;
-    GLenum type;
-
-    const GLsizei bufSize = 16;
-    GLchar name[bufSize];
-    GLsizei length;
-
-    std::cout << "Shader: " + std::to_string(this->shader->getId()) << std::endl;
-
-    glGetProgramiv(this->shader->getId(), GL_ACTIVE_ATTRIBUTES, &count);
-    std::cout << "Active Attributes: " + std::to_string(count) << std::endl;
-    for (i = 0; i < count; i++) {
-        glGetActiveAttrib(this->shader->getId(), (GLuint)i, bufSize, &length, &size, &type, name);
-        std::cout << "Attribute " + std::to_string(i) + " Type: " + std::to_string(type) + " Name: " + name << std::endl;
-    }
-
-    glGetProgramiv(this->shader->getId(), GL_ACTIVE_UNIFORMS, &count);
-    std::cout << "Active Uniforms: " + std::to_string(count) << std::endl;
-    for (i = 0; i < count; i++) {
-        glGetActiveUniform(this->shader->getId(), (GLuint)i, bufSize, &length, &size, &type, name);
-        std::cout << "Uniform " + std::to_string(i) + " Type: " + std::to_string(type) + " Name: " + name << std::endl;
-    }
-
 }
 
 Entity::~Entity() {
