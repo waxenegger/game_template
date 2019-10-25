@@ -2,7 +2,7 @@
 #define RENDER_HPP
 
 #include "includes.hpp"
-#include "render.hpp"
+#include "world.hpp"
 
 static const int DEFAULT_WIDTH = 640;
 static const int DEFAULT_HEIGHT = 480;
@@ -53,11 +53,11 @@ static const std::string DEFAULT_FRAGMENT_SHADER =
         "#ifdef GL_ES\n"
         "precision highp float;\n"
         "#endif\n"
-        "uniform vec4 lightColor;\n"
+        "uniform vec4 ambientLight;\n"
         "uniform vec4 objectColor;\n"
         "out vec4 fragColor;\n"
         "void main() {\n"
-        "    fragColor = lightColor * objectColor;\n"
+        "    fragColor = ambientLight * objectColor;\n"
         "}";
 
 class Shader final {

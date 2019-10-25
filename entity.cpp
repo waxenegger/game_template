@@ -1,4 +1,3 @@
-#include "game.hpp"
 #include "render.hpp"
 
 class Model;
@@ -28,7 +27,7 @@ void Entity::render() {
 			this->shader->setMat4("model", this->calculateTransformationMatrix());
 			this->shader->setMat4("view", Camera::instance()->getViewMatrix());
 			this->shader->setMat4("projection", Camera::instance()->getPerspective());
-			this->shader->setVec4("lightColor",  1.0f, 1.0f, 1.0f, 1.0f);
+			this->shader->setVec4("ambientLight",  World::instance()->getAmbientLight());
 			this->shader->setVec4("objectColor", this->color);
 			//this->shader->dumpActiveShaderAttributes();
 		}

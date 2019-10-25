@@ -2,7 +2,7 @@
 #define INCLUDES_HPP
 
     #include <iostream>
-	#include <fstream>
+    #include <fstream>
     #include <ctype.h>
     #include <memory>
     #include <vector>
@@ -12,9 +12,9 @@
     #include <SDL_image.h>
 
     #include <glm/glm.hpp>
-	#include <glm/gtc/matrix_transform.hpp>
-	#include <glm/gtc/type_ptr.hpp>
-	#include <glm/gtx/string_cast.hpp>
+    #include <glm/gtc/matrix_transform.hpp>
+    #include <glm/gtc/type_ptr.hpp>
+    #include <glm/gtx/string_cast.hpp>
 
     #include <GL/glew.h>
 

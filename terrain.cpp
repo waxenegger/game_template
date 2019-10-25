@@ -2,16 +2,29 @@
 
 Terrain::Terrain(const std::string & dir) {
     this->dir = dir;
+    int start = -100, end = 100;
+    int numberOfVertices = end - start;
+    for (int row=start;row<end;row++) {
+        for (int col=start;col<end;col++) {
+            this->mesh.vertices.push_back(Vertex(glm::vec3(row, 0.0f, col)));
+        }
+    }
+    unsigned int i = 0;
+    for (int row=start;row<end-1;row++) {
+        unsigned int j = 0;
+        for (int col=start;col<end-1;col++) {
+            this->mesh.indices.push_back(i * numberOfVertices + j);
+            this->mesh.indices.push_back(i * numberOfVertices + j + 1);
+            this->mesh.indices.push_back((i+1) * numberOfVertices + j);
+            this->mesh.indices.push_back(i * numberOfVertices + j + 1);
+            this->mesh.indices.push_back((i+1) * numberOfVertices + j);
+            this->mesh.indices.push_back((i+1) * numberOfVertices + j + 1);
+            j++;
+        }
+        i++;
+    }
+
     this->initialized = true;
-    this->mesh.vertices.push_back(
-            Vertex(glm::vec3(-10.0f, 0.0f, 10.0f)));
-    this->mesh.indices.push_back(2);
-    this->mesh.vertices.push_back(
-            Vertex(glm::vec3(10.0f, 0.0f, 10.0f)));
-    this->mesh.indices.push_back(1);
-    this->mesh.vertices.push_back(
-            Vertex(glm::vec3(0.0f, 0.0f, -10.0f)));
-    this->mesh.indices.push_back(0);
 }
 
 void Terrain::init() {
@@ -38,7 +51,7 @@ void Terrain::render(Shader * shader) {
             shader->setMat4("model", glm::mat4(1.0f));
             shader->setMat4("view", Camera::instance()->getViewMatrix());
             shader->setMat4("projection", Camera::instance()->getPerspective());
-            shader->setVec4("lightColor",  1.0f, 1.0f, 1.0f, 1.0f);
+            shader->setVec4("ambientLight",  World::instance()->getAmbientLight());
             shader->setVec4("objectColor", glm::vec4(1.0f, 0.0f, 0.0f, 0.0f));
             //shader->dumpActiveShaderAttributes();
         }

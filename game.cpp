@@ -98,27 +98,27 @@ void Game::run() {
                 break;
 
             case SDL_MOUSEMOTION:
-                camera->updateDirection(
+                this->camera->updateDirection(
                         e.motion.xrel, e.motion.yrel, this->frameDuration);
                 break;
 
             case SDL_MOUSEWHEEL:
             {
                 const Sint32 delta = e.wheel.y * (e.wheel.direction == SDL_MOUSEWHEEL_NORMAL ? 1 : -1);
-                float newFovy = camera->getFieldOfViewY() - delta * 2;
+                float newFovy = this->camera->getFieldOfViewY() - delta * 2;
                 if (newFovy < 1) newFovy = 1;
                 else if (newFovy > 45) newFovy = 45;
-                camera->setFieldOfViewY(newFovy);
-                camera->setPerspective(
-                        glm::perspective(glm::radians(camera->getFieldOfViewY()),
+                this->camera->setFieldOfViewY(newFovy);
+                this->camera->setPerspective(
+                        glm::perspective(glm::radians(this->camera->getFieldOfViewY()),
                                 this->getAspectRatio(), 0.01f, 1000.0f));
                 break;
             }
             case SDL_WINDOWEVENT:
                 if(e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
                     this->resize(e.window.data1, e.window.data2);
-                    camera->setPerspective(
-                            glm::perspective(glm::radians(camera->getFieldOfViewY()),
+                    this->camera->setPerspective(
+                            glm::perspective(glm::radians(this->camera->getFieldOfViewY()),
                                     this->getAspectRatio(), 0.01f, 1000.0f));
                 }
                 break;
@@ -130,8 +130,11 @@ void Game::run() {
             case SDL_TEXTINPUT:
                 char input = toupper(e.text.text[0]);
                 if (input == 'Q') quit = true;
-                else if (input == 'F')this->toggleWireframe();
-                else camera->updateLocation(input, this->frameDuration);
+                else if (input == 'F') this->toggleWireframe();
+                else if (input == '+') this->world->setAmbientLightFactor(this->world->getAmbientLight().x + 0.1);
+                else if (input == '-') this->world->setAmbientLightFactor(this->world->getAmbientLight().x - 0.1);
+                else this->camera->updateLocation(input, this->frameDuration);
+
                 break;
             }
         }
@@ -188,8 +191,9 @@ float Game::getLastFrameDuration() const {
 }
 
 Game::~Game() {
-    if (this->camera != nullptr) delete this->camera;
     if (this->terrain != nullptr) delete this->terrain;
+    if (this->camera != nullptr) delete this->camera;
+    if (this->world != nullptr) delete this->world;
     cleanUp();
 }
 

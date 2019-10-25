@@ -2,6 +2,7 @@
 #define GAME_HPP
 
 #include "render.hpp"
+#include "world.hpp"
 
 class Game {
     private:
@@ -18,6 +19,7 @@ class Game {
         SDL_Window * window = nullptr;
         SDL_GLContext glContext = nullptr;
 
+        World * world = World::instance();
         Camera * camera = Camera::instance(-5.0f, 1.0f, -5.0f);
 
         std::vector<std::unique_ptr<Entity>> scene;
