@@ -28,6 +28,8 @@ void Entity::render() {
 			this->shader->setMat4("view", Camera::instance()->getViewMatrix());
 			this->shader->setMat4("projection", Camera::instance()->getPerspective());
 			this->shader->setVec4("ambientLight",  World::instance()->getAmbientLight());
+            this->shader->setVec3("sunDirection", World::instance()->getSunDirection());
+            this->shader->setVec4("sunLightColor", World::instance()->getSunLightColor());
 			this->shader->setVec4("objectColor", this->color);
 			//this->shader->dumpActiveShaderAttributes();
 		}

@@ -42,22 +42,34 @@ static const int NUM_SHADERS = 2;
 static const std::string DEFAULT_VERTEX_SHADER =
         "#version 300 es\n"
         "in vec3 position;\n"
+        "in vec3 normal;\n"
         "uniform mat4 model;\n"
         "uniform mat4 view;\n"
         "uniform mat4 projection;\n"
+        "out vec3 norm;\n"
+        "out vec3 pos;\n"
         "void main() {\n"
         "    gl_Position = projection * view * model * vec4(position, 1.0);\n"
+        "    pos = normalize(vec3(model * vec4(position, 1.0f)));\n"
+        "    norm = normalize(vec3(transpose(inverse(model)) * vec4(normal, 1.0f)));\n"
         "}";
 static const std::string DEFAULT_FRAGMENT_SHADER =
         "#version 300 es\n"
         "#ifdef GL_ES\n"
         "precision highp float;\n"
         "#endif\n"
+        "in vec3 norm;\n"
+        "in vec3 pos;\n"
         "uniform vec4 ambientLight;\n"
         "uniform vec4 objectColor;\n"
+        "uniform vec3 sunDirection;\n"
+        "uniform vec4 sunLightColor;\n"
         "out vec4 fragColor;\n"
         "void main() {\n"
-        "    fragColor = ambientLight * objectColor;\n"
+        "    vec3 lightDir = normalize(sunDirection - pos);\n"
+        "    float diff = max(dot(norm, lightDir), 0.0);\n"
+        "    vec4 diffuse = diff * sunLightColor;\n"
+        "    fragColor = (ambientLight + diffuse) * objectColor;\n"
         "}";
 
 class Shader final {

@@ -38,9 +38,9 @@ bool Game::init() {
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_GREATER);
         glDepthMask( GL_FALSE );
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        //glEnable(GL_CULL_FACE);
+        //glEnable(GL_BLEND);
+        //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_CULL_FACE);
 
         window = SDL_CreateWindow("Game", SDL_WINDOWPOS_UNDEFINED,
                 SDL_WINDOWPOS_UNDEFINED, this->width, this->height,
@@ -133,6 +133,8 @@ void Game::run() {
                 else if (input == 'F') this->toggleWireframe();
                 else if (input == '+') this->world->setAmbientLightFactor(this->world->getAmbientLight().x + 0.1);
                 else if (input == '-') this->world->setAmbientLightFactor(this->world->getAmbientLight().x - 0.1);
+                else if (input == '*') this->world->setSunLightStrength(this->world->getSunLightColor().x + 0.1);
+                else if (input == '/') this->world->setSunLightStrength(this->world->getSunLightColor().x - 0.1);
                 else this->camera->updateLocation(input, this->frameDuration);
 
                 break;
