@@ -37,10 +37,11 @@ bool Game::init() {
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_GREATER);
-        glDepthMask( GL_FALSE );
+        //glDepthMask( GL_FALSE );
         //glEnable(GL_BLEND);
         //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glEnable(GL_CULL_FACE);
+        //glEnable(GL_CULL_FACE);
+        //glEnable(GL_AUTO_NORMAL);
 
         window = SDL_CreateWindow("Game", SDL_WINDOWPOS_UNDEFINED,
                 SDL_WINDOWPOS_UNDEFINED, this->width, this->height,
@@ -200,12 +201,12 @@ Game::~Game() {
 }
 
 void Game::createTestModels() {
-    Model * teapot = new Model(this->root, "test/teapot.obj");
+    Model * teapot = new Model(this->root, "test/utah-teapot.obj");
     if (teapot->hasBeenLoaded()) {
         teapot->init();
         Entity * ent = new Entity(teapot, new Shader());
         ent->setScaleFactor(1.0f);
-        ent->setColor(1.0f, 1.0f, 1.0f, 1.0f);
+        ent->setColor(1.0f, 1.0f, 0.0f, 1.0f);
         this->scene.push_back(std::unique_ptr<Entity>(ent));
     }
 }

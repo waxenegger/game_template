@@ -67,7 +67,7 @@ static const std::string DEFAULT_FRAGMENT_SHADER =
         "out vec4 fragColor;\n"
         "void main() {\n"
         "    vec3 lightDir = normalize(sunDirection - pos);\n"
-        "    float diff = max(dot(norm, lightDir), 0.0);\n"
+        "    float diff = max(dot(norm, normalize(lightDir)), 0.0);\n"
         "    vec4 diffuse = diff * sunLightColor;\n"
         "    fragColor = (ambientLight + diffuse) * objectColor;\n"
         "}";

@@ -10,7 +10,7 @@
         const float DEFAULT_SUNLIGHT_STRENGTH = 0.75f;
 
         glm::vec3 ambientLight = glm::vec3(1.0f);
-        glm::vec3 sunDirection = glm::vec3(10.0f, 30.0f, 10.001f);
+        glm::vec3 sunDirection = glm::vec3(10.0f, 10.0f, 10.001f);
         glm::vec3 sunLightColor = glm::vec3(1.0f);
 
         World();
