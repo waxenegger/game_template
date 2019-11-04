@@ -78,7 +78,7 @@ void Terrain::render(Shader * shader) {
             shader->setMat4("view", Camera::instance()->getViewMatrix());
             shader->setMat4("projection", Camera::instance()->getPerspective());
             shader->setVec4("ambientLight",  World::instance()->getAmbientLight());
-            shader->setVec4("objectColor", glm::vec4(1.0f, 0.0f, 0.0f, 0.0f));
+            shader->setVec4("objectColor", glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
             shader->setVec3("sunDirection", World::instance()->getSunDirection());
             shader->setVec4("sunLightColor", World::instance()->getSunLightColor());
             //shader->dumpActiveShaderAttributes();

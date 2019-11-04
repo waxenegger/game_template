@@ -55,9 +55,9 @@ Mesh Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
      for(unsigned int i = 0; i < mesh->mNumVertices; i++) {
          Vertex vertex(glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z));
 
-         if (mesh->HasNormals() && mesh->mNormals->Length() == mesh->mNumVertices) {
-             vertex.normal = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
-             vertex.normal = glm::vec3(MAXFLOAT);
+         if (mesh->HasNormals()) {
+             vertex.normal = glm::normalize(glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z));
+             //vertex.normal = glm::vec3(MAXFLOAT);
          }
 
          if(mesh->HasTextureCoords(0)) {
@@ -84,6 +84,7 @@ Mesh Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
 
          for(unsigned int j = 0; j < face.mNumIndices; j++) indices.push_back(face.mIndices[j]);
 
+         /*
          if (face.mNumIndices == 3) {
              const glm::vec3 edgeA = vertices[face.mIndices[2]].position - vertices[face.mIndices[1]].position;
              const glm::vec3 edgeB = vertices[face.mIndices[1]].position - vertices[face.mIndices[0]].position;
@@ -93,7 +94,7 @@ Mesh Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
                      vertices[face.mIndices[e]].normal = glm::normalize(crossProduct);
                  else vertices[face.mIndices[e]].normal = glm::normalize((vertices[face.mIndices[e]].normal + crossProduct) / glm::vec3(2.0f));
              }
-         }
+         }*/
      }
 
      return Mesh(vertices, indices, textures);

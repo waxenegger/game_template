@@ -35,12 +35,13 @@ bool Game::init() {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+        glEnable(GL_CULL_FACE | GL_CULL_FACE_MODE);
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_GREATER);
         //glDepthMask( GL_FALSE );
         //glEnable(GL_BLEND);
         //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        //glEnable(GL_CULL_FACE);
+        //glDisable(GL_CULL_FACE);
         //glEnable(GL_AUTO_NORMAL);
 
         window = SDL_CreateWindow("Game", SDL_WINDOWPOS_UNDEFINED,
@@ -145,7 +146,7 @@ void Game::run() {
         this->render();
     }
 
-    this->terrain->cleanUp();
+    if (this->terrain != nullptr) this->terrain->cleanUp();
     for (auto & entity : this->scene) entity->cleanUp();
 
     SDL_StopTextInput();
@@ -163,7 +164,7 @@ void Game::render() {
 
     this->clearScreen(0, 0, 0, 0);
 
-    this->terrain->render();
+    if (this->terrain != nullptr) this->terrain->render();
     for (auto & entity : this->scene) entity->render();
 
     SDL_GL_SwapWindow(window);
