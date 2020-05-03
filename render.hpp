@@ -40,7 +40,7 @@ static std::map<std::string, Texture> TEXTURES;
 
 static const int NUM_SHADERS = 2;
 static const std::string DEFAULT_VERTEX_SHADER =
-        "#version 330\n"
+        "#version 330 core\n"
         "in vec3 position;\n"
         "in vec3 normal;\n"
         "uniform mat4 model;\n"
@@ -49,27 +49,24 @@ static const std::string DEFAULT_VERTEX_SHADER =
         "out vec3 norm;\n"
         "out vec3 pos;\n"
         "void main() {\n"
-        "    gl_Position = projection * view * model * vec4(position, 1.0);\n"
-        "    pos = normalize(vec3(model * vec4(position, 1.0f)));\n"
-        "    norm = normalize(vec3(transpose(inverse(model)) * vec4(normal, 1.0f)));\n"
+        "    pos = vec3(view * model * vec4(position, 1.0));\n"
+        "    gl_Position = projection * vec4(pos, 1.0);\n"
+        "    norm = normalize(mat3(transpose(inverse(model))) * normal);\n"
         "}";
 static const std::string DEFAULT_FRAGMENT_SHADER =
-        "#version 330\n"
-        "#ifdef GL_ES\n"
-        "precision highp float;\n"
-        "#endif\n"
+        "#version 330 core\n"
         "in vec3 norm;\n"
         "in vec3 pos;\n"
-        "uniform vec4 ambientLight;\n"
-        "uniform vec4 objectColor;\n"
+        "uniform vec3 ambientLight;\n"
+        "uniform vec3 objectColor;\n"
         "uniform vec3 sunDirection;\n"
-        "uniform vec4 sunLightColor;\n"
+        "uniform vec3 sunLightColor;\n"
         "out vec4 fragColor;\n"
         "void main() {\n"
         "    vec3 lightDir = normalize(sunDirection - pos);\n"
         "    float diff = max(dot(norm, lightDir), 0.0);\n"
-        "    vec4 diffuse = diff * sunLightColor;\n"
-        "    fragColor = (ambientLight + diffuse) * objectColor;\n"
+        "    vec3 diffuse = diff * sunLightColor;\n"
+        "    fragColor = normalize(vec4((ambientLight + diffuse) * objectColor, 1.0));\n"
         "}";
 
 class Shader final {
@@ -212,7 +209,7 @@ class Camera final {
         glm::vec3 direction = glm::vec3(0.001f, 0.0f, 0.001f);
         glm::mat4 perspective = glm::perspective(glm::radians(fovy),
                 static_cast<float>(DEFAULT_WIDTH)
-                / static_cast<float>(DEFAULT_HEIGHT), 0.01f, 1000.0f);
+                / static_cast<float>(DEFAULT_HEIGHT), 0.1f, 10000.0f);
         const glm::vec3 upVector = glm::vec3(0.0f, 1.0f, 0.0f);
 
         Camera() {};
@@ -247,7 +244,7 @@ class Entity {
         glm::vec3 position = glm::vec3(0.0f);
         glm::vec3 rotation = glm::vec3(0.0f);
         float scaleFactor = 1.0f;
-        glm::vec4 color = glm::vec4(1.0f);
+        glm::vec3 color = glm::vec3(1.0f);
 
     public:
         ~Entity();
@@ -280,11 +277,10 @@ class Entity {
         glm::mat4 calculateTransformationMatrix();
         void render();
         void cleanUp();
-        void setColor(const float red, const float green, const float blue, const float alpha) {
+        void setColor(const float red, const float green, const float blue) {
         	this->color.x = red;
         	this->color.y = green;
         	this->color.z = blue;
-        	this->color.w = alpha;
         }
 };
 

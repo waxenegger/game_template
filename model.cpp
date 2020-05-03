@@ -6,7 +6,7 @@ Model::Model(const std::string & dir, const std::string & file) {
     Assimp::Importer importer;
 
     const aiScene *scene = importer.ReadFile(this->file.c_str(),
-            aiProcess_Triangulate | aiProcessPreset_TargetRealtime_MaxQuality);
+            aiProcess_Triangulate | aiProcess_DropNormals | aiProcess_GenSmoothNormals);
 
     if (scene == nullptr) {
         std::cerr << importer.GetErrorString() << std::endl;

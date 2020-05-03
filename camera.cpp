@@ -62,8 +62,6 @@ void Camera::updateLocation(const char direction, const float frameDuration) {
     this->pitch = glm::asin(this->getDirection().y);
     this->yaw = glm::atan(this->getDirection().z, this->getDirection().x);
 
-    //float deltaXRot = glm::cos(this->pitch) * glm::cos(this->yaw);
-    //float deltaYRot = glm::cos(this->pitch) * glm::sin(this->yaw);
     float deltaXRot = glm::cos(this->yaw);
     float deltaYRot = glm::sin(this->yaw);
 

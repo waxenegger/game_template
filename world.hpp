@@ -17,9 +17,9 @@
     public:
         void setAmbientLightFactor(const float ambientLightFactor);
         void setSunLightStrength(const float sunLightStrength);
-        glm::vec4 getAmbientLight();
+        glm::vec3 getAmbientLight();
         glm::vec3 getSunDirection();
-        glm::vec4 getSunLightColor();
+        glm::vec3 getSunLightColor();
         static World * instance();
 };
 

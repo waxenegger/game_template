@@ -15,12 +15,12 @@ void World::setSunLightStrength(const float sunLightStrength) {
         this->sunLightColor = glm::vec3(1.0f) * sunLightStrength;
 };
 
-glm::vec4 World::getSunLightColor() {
-    return glm::vec4(this->sunLightColor, 1.0f);
+glm::vec3 World::getSunLightColor() {
+    return this->sunLightColor;
 };
 
-glm::vec4 World::getAmbientLight() {
-    return glm::vec4(this->ambientLight, 1.0f);
+glm::vec3 World::getAmbientLight() {
+    return this->ambientLight;
 };
 
 glm::vec3 World::getSunDirection() {

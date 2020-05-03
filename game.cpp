@@ -35,14 +35,7 @@ bool Game::init() {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-        glEnable(GL_CULL_FACE | GL_CULL_FACE_MODE);
-        glEnable(GL_DEPTH_TEST);
-        glDepthFunc(GL_GREATER);
-        //glDepthMask( GL_FALSE );
-        //glEnable(GL_BLEND);
-        //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        //glDisable(GL_CULL_FACE);
-        //glEnable(GL_AUTO_NORMAL);
+        SDL_GL_SetSwapInterval(1);
 
         window = SDL_CreateWindow("Game", SDL_WINDOWPOS_UNDEFINED,
                 SDL_WINDOWPOS_UNDEFINED, this->width, this->height,
@@ -58,6 +51,8 @@ bool Game::init() {
                         << SDL_GetError() << std::endl;
                 return false;
             } else {
+                glEnable(GL_DEPTH_TEST);
+
                 if (SDL_GL_SetSwapInterval(1) < 0) {
                     std::cerr << "Warning: Unable to set VSync! SDL Error: "
                             << SDL_GetError() << std::endl;
@@ -100,8 +95,9 @@ void Game::run() {
                 break;
 
             case SDL_MOUSEMOTION:
-                this->camera->updateDirection(
-                        e.motion.xrel, e.motion.yrel, this->frameDuration);
+                if (SDL_GetRelativeMouseMode() == SDL_TRUE)
+                    this->camera->updateDirection(
+                            e.motion.xrel, e.motion.yrel, this->frameDuration);
                 break;
 
             case SDL_MOUSEWHEEL:
@@ -131,14 +127,30 @@ void Game::run() {
 
             case SDL_TEXTINPUT:
                 char input = toupper(e.text.text[0]);
-                if (input == 'Q') quit = true;
-                else if (input == 'F') this->toggleWireframe();
-                else if (input == '+') this->world->setAmbientLightFactor(this->world->getAmbientLight().x + 0.1);
-                else if (input == '-') this->world->setAmbientLightFactor(this->world->getAmbientLight().x - 0.1);
-                else if (input == '*') this->world->setSunLightStrength(this->world->getSunLightColor().x + 0.1);
-                else if (input == '/') this->world->setSunLightStrength(this->world->getSunLightColor().x - 0.1);
-                else this->camera->updateLocation(input, this->frameDuration);
 
+                switch (input) {
+                    case 'Q':
+                        quit = true;
+                        break;
+                    case 'F':
+                        this->toggleWireframe();
+                        break;
+                    case '+':
+                        this->world->setAmbientLightFactor(this->world->getAmbientLight().x + 0.1);
+                        break;
+                    case '-':
+                        this->world->setAmbientLightFactor(this->world->getAmbientLight().x - 0.1);
+                        break;
+                    case '*':
+                        this->world->setSunLightStrength(this->world->getSunLightColor().x + 0.1);
+                        break;
+                    case '/':
+                        this->world->setSunLightStrength(this->world->getSunLightColor().x - 0.1);
+                        break;
+                    default:
+                        if (SDL_GetRelativeMouseMode() == SDL_TRUE)
+                            this->camera->updateLocation(input, this->frameDuration);
+                }
                 break;
             }
         }
@@ -162,7 +174,7 @@ void Game::clearScreen(float r, float g, float b, float a) {
 void Game::render() {
     glPolygonMode(GL_FRONT_AND_BACK, this->wireframe ? GL_LINE : GL_FILL);
 
-    this->clearScreen(0, 0, 0, 0);
+    this->clearScreen(0, 0, 0, 1);
 
     if (this->terrain != nullptr) this->terrain->render();
     for (auto & entity : this->scene) entity->render();
@@ -202,18 +214,19 @@ Game::~Game() {
 }
 
 void Game::createTestModels() {
-    Model * teapot = new Model(this->root, "test/utah-teapot.obj");
+    Model * teapot = new Model(this->root, "/res/models/teapot.obj");
     if (teapot->hasBeenLoaded()) {
         teapot->init();
         Entity * ent = new Entity(teapot, new Shader());
-        ent->setScaleFactor(1.0f);
-        ent->setColor(1.0f, 1.0f, 0.0f, 1.0f);
+        ent->setPosition(0.0f,3.0f, 0.0f);
+        ent->setScaleFactor(2.0f);
+        ent->setColor(1.0f, 1.0f, 0.0f);
         this->scene.push_back(std::unique_ptr<Entity>(ent));
     }
 }
 
 int main(int argc, char **argv) {
-    Game game((argc > 1) ? std::string(argv[1]) : "");
+    Game game((argc > 1) ? std::string(argv[1]) : "./");
     if (game.init()) game.run();
 
     TEXTURES.clear();
