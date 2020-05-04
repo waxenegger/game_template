@@ -58,7 +58,7 @@ static const std::string DEFAULT_FRAGMENT_SHADER =
         "in vec3 norm;\n"
         "in vec3 pos;\n"
         "uniform vec3 ambientLight;\n"
-        "uniform vec3 objectColor;\n"
+        "uniform vec4 objectColor;\n"
         "uniform vec3 sunDirection;\n"
         "uniform vec3 sunLightColor;\n"
         "out vec4 fragColor;\n"
@@ -66,7 +66,7 @@ static const std::string DEFAULT_FRAGMENT_SHADER =
         "    vec3 lightDir = normalize(sunDirection - pos);\n"
         "    float diff = max(dot(norm, lightDir), 0.0);\n"
         "    vec3 diffuse = diff * sunLightColor;\n"
-        "    fragColor = normalize(vec4((ambientLight + diffuse) * objectColor, 1.0));\n"
+        "    fragColor = normalize(vec4(ambientLight + diffuse, 1.0) * objectColor);\n"
         "}";
 
 class Shader final {
@@ -97,6 +97,7 @@ class Shader final {
         };
         void setBool(const std::string &name, bool value) const;
         void setInt(const std::string &name, int value) const;
+        void setIntVec(const std::string &name, std::vector<GLint> value) const;
         void setFloat(const std::string &name, float value) const;
         void setVec2(const std::string &name, const glm::vec2 &value) const;
         void setVec2(const std::string &name, float x, float y) const;
@@ -180,7 +181,12 @@ class Model {
         void processNode(const aiNode * node, const aiScene *scene);
         Mesh processMesh(const aiMesh *mesh, const aiScene *scene);
         void addTextures(const aiMaterial * mat, const aiTextureType type, const std::string name, std::vector<Texture> & textures);
+        void correctTexturePath(char * path);
     public:
+        static const std::string AMBIENT_TEXTURE;
+        static const std::string DIFFUSE_TEXTURE;
+        static const std::string SPECULAR_TEXTURE;
+        static const std::string TEXTURE_NORMALS;
         ~Model() { this->cleanUp();}
         Model() {};
         Model(const std::string & dir, const std::string & file);
@@ -244,7 +250,7 @@ class Entity {
         glm::vec3 position = glm::vec3(0.0f);
         glm::vec3 rotation = glm::vec3(0.0f);
         float scaleFactor = 1.0f;
-        glm::vec3 color = glm::vec3(1.0f);
+        glm::vec4 color = glm::vec4(1.0f);
 
     public:
         ~Entity();
@@ -277,10 +283,11 @@ class Entity {
         glm::mat4 calculateTransformationMatrix();
         void render();
         void cleanUp();
-        void setColor(const float red, const float green, const float blue) {
+        void setColor(const float red, const float green, const float blue, const float alpha) {
         	this->color.x = red;
         	this->color.y = green;
         	this->color.z = blue;
+            this->color.a = alpha;
         }
 };
 

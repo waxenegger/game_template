@@ -6,7 +6,7 @@ Model::Model(const std::string & dir, const std::string & file) {
     Assimp::Importer importer;
 
     const aiScene *scene = importer.ReadFile(this->file.c_str(),
-            aiProcess_Triangulate | aiProcess_DropNormals | aiProcess_GenSmoothNormals);
+            aiProcess_Triangulate | aiProcess_GenSmoothNormals);
 
     if (scene == nullptr) {
         std::cerr << importer.GetErrorString() << std::endl;
@@ -46,19 +46,17 @@ Mesh Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
          aiGetMaterialColor(material, AI_MATKEY_COLOR_DIFFUSE, diffuse.get());
          aiGetMaterialColor(material, AI_MATKEY_COLOR_SPECULAR, specular.get());
 
-         this->addTextures(material, aiTextureType_DIFFUSE, "texture_diffuse", textures);
-         this->addTextures(material, aiTextureType_SPECULAR, "texture_specular", textures);
-         this->addTextures(material, aiTextureType_HEIGHT, "texture_normal", textures);
-         this->addTextures(material, aiTextureType_AMBIENT, "texture_height", textures);
+         this->addTextures(material, aiTextureType_AMBIENT, Model::AMBIENT_TEXTURE, textures);
+         this->addTextures(material, aiTextureType_DIFFUSE, Model::DIFFUSE_TEXTURE, textures);
+         this->addTextures(material, aiTextureType_SPECULAR, Model::SPECULAR_TEXTURE, textures);
+         this->addTextures(material, aiTextureType_HEIGHT, Model::TEXTURE_NORMALS, textures);
      }
 
      for(unsigned int i = 0; i < mesh->mNumVertices; i++) {
          Vertex vertex(glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z));
 
-         if (mesh->HasNormals()) {
+         if (mesh->HasNormals())
              vertex.normal = glm::normalize(glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z));
-             //vertex.normal = glm::vec3(MAXFLOAT);
-         }
 
          if(mesh->HasTextureCoords(0)) {
              vertex.uv = glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
@@ -83,21 +81,24 @@ Mesh Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
          const aiFace face = mesh->mFaces[i];
 
          for(unsigned int j = 0; j < face.mNumIndices; j++) indices.push_back(face.mIndices[j]);
-
-         /*
-         if (face.mNumIndices == 3) {
-             const glm::vec3 edgeA = vertices[face.mIndices[2]].position - vertices[face.mIndices[1]].position;
-             const glm::vec3 edgeB = vertices[face.mIndices[1]].position - vertices[face.mIndices[0]].position;
-             const glm::vec3 crossProduct = glm::cross(edgeB, edgeA);
-             for (unsigned int e = 0; e < 3; e++) {
-                 if (vertices[face.mIndices[e]].normal.x == MAXFLOAT)
-                     vertices[face.mIndices[e]].normal = glm::normalize(crossProduct);
-                 else vertices[face.mIndices[e]].normal = glm::normalize((vertices[face.mIndices[e]].normal + crossProduct) / glm::vec3(2.0f));
-             }
-         }*/
      }
 
      return Mesh(vertices, indices, textures);
+}
+
+void Model::correctTexturePath(char * path) {
+    int index = 0;
+
+    while(path[index] == '\0') index++;
+
+    if(index != 0) {
+        int i = 0;
+        while(path[i + index] != '\0') {
+            path[i] = path[i + index];
+            i++;
+        }
+        path[i] = '\0';
+    }
 }
 
 void Model::addTextures(const aiMaterial * mat, const aiTextureType type, const std::string name, std::vector<Texture> & textures) {
@@ -105,7 +106,9 @@ void Model::addTextures(const aiMaterial * mat, const aiTextureType type, const 
         aiString str;
         mat->GetTexture(type, i, &str);
 
-        const std::string fullyQualifiedName(this->dir + std::string(str.C_Str()));
+        if (str.length > 0) this->correctTexturePath(str.data);
+
+        const std::string fullyQualifiedName(this->dir + "/res/models/" + std::string(str.C_Str(), str.length));
 
         std::map<std::string, Texture>::iterator val(TEXTURES.find(fullyQualifiedName));
 
@@ -142,3 +145,8 @@ void Model::cleanUp() {
     this->initialized = false;
     this->loaded = false;
 }
+
+const std::string Model::AMBIENT_TEXTURE = "texture_ambient";
+const std::string Model::DIFFUSE_TEXTURE = "texture_diffuse";
+const std::string Model::SPECULAR_TEXTURE = "texture_specular";
+const std::string Model::TEXTURE_NORMALS = "texture_normals";

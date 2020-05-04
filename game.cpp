@@ -220,7 +220,7 @@ void Game::createTestModels() {
         Entity * ent = new Entity(teapot, new Shader());
         ent->setPosition(0.0f,3.0f, 0.0f);
         ent->setScaleFactor(2.0f);
-        ent->setColor(1.0f, 1.0f, 0.0f);
+        ent->setColor(1.0f, 1.0f, 1.0f, 1.0f);
         this->scene.push_back(std::unique_ptr<Entity>(ent));
     }
 }
