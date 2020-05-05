@@ -217,7 +217,7 @@ void Game::createTestModels() {
     Model * teapot = new Model(this->root, "/res/models/teapot.obj");
     if (teapot->hasBeenLoaded()) {
         teapot->init();
-        Entity * ent = new Entity(teapot, new Shader());
+        Entity * ent = new Entity(teapot, new Shader(std::string(this->root + "/res/shaders/textures")));
         ent->setPosition(0.0f,3.0f, 0.0f);
         ent->setScaleFactor(2.0f);
         ent->setColor(1.0f, 1.0f, 1.0f, 1.0f);

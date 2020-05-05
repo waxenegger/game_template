@@ -18,6 +18,7 @@ void Mesh::init() {
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
 
+    int i=0;
     for (auto & texture : this->textures) {
         const std::string textureLocation(texture.getPath());
 
@@ -42,15 +43,14 @@ void Mesh::init() {
             glGenTextures(1, &id);
             texture.setId(id);
 
+            glActiveTexture(GL_TEXTURE0 + i);
             glBindTexture(GL_TEXTURE_2D, texture.getId());
-
-            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
             glTexImage2D(GL_TEXTURE_2D, 0, texture_format, textureSurface->w, textureSurface->h, 0, GL_RGBA,
                     GL_UNSIGNED_BYTE, textureSurface->pixels);
             glGenerateMipmap(GL_TEXTURE_2D);
             SDL_FreeSurface(textureSurface);
+            i++;
         } else std::cerr << "Failed to load texture: " << textureLocation << std::endl;
     }
 
@@ -62,10 +62,23 @@ void Mesh::render(Shader * shader) {
     glBindVertexArray(this->VAO);
 
     if (shader != nullptr && shader->isBeingUsed()) {
-        for (size_t i = 0;i<this->textures.size();i++) {
-            shader->setInt("tex" + std::to_string(i), i);
+        shader->setInt(Model::AMBIENT_TEXTURE, 0);
+        shader->setInt(Model::DIFFUSE_TEXTURE, 0);
+        shader->setInt(Model::SPECULAR_TEXTURE, 0);
+        shader->setInt(Model::TEXTURE_NORMALS, 0);
+
+        int i=0;
+        for (auto & texture : this->textures) {
             glActiveTexture(GL_TEXTURE0 + i);
-            glBindTexture(GL_TEXTURE_2D, this->textures[i].getId());
+            glBindTexture(GL_TEXTURE_2D, texture.getId());
+
+            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+
+            shader->setInt(texture.getType(), i);
+            shader->setInt("has_" + texture.getType(), 1);
+
+            i++;
         }
     }
 
