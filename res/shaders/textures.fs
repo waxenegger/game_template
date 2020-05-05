@@ -51,7 +51,7 @@ void main() {
 			if (finalTexture == vec4(0.0)) {
 				finalTexture = texture(texture_specular, uvCoords);
 			} else {
-				finalTexture = mix(finalTexture, texture(texture_specular, uvCoords), 0.8);
+				finalTexture = mix(finalTexture, texture(texture_specular, uvCoords), 0.7);
 			}
 		}
 
