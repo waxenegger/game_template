@@ -46,7 +46,10 @@ void Mesh::init() {
             glActiveTexture(GL_TEXTURE0 + i);
             glBindTexture(GL_TEXTURE_2D, texture.getId());
 
-            glTexImage2D(GL_TEXTURE_2D, 0, texture_format, textureSurface->w, textureSurface->h, 0, GL_RGBA,
+            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureSurface->w, textureSurface->h, 0, texture_format,
                     GL_UNSIGNED_BYTE, textureSurface->pixels);
             glGenerateMipmap(GL_TEXTURE_2D);
             SDL_FreeSurface(textureSurface);
@@ -71,9 +74,6 @@ void Mesh::render(Shader * shader) {
         for (auto & texture : this->textures) {
             glActiveTexture(GL_TEXTURE0 + i);
             glBindTexture(GL_TEXTURE_2D, texture.getId());
-
-            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 
             shader->setInt(texture.getType(), i);
             shader->setInt("has_" + texture.getType(), 1);

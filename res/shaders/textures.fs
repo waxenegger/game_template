@@ -22,40 +22,35 @@ out vec4 fragColor;
 
 void main() {
 	vec3 lightDir = normalize(sunDirection - pos);
-
-	vec4 texNormals = vec4(norm,1);
-	if (has_texture_normals) {
-		texNormals = normalize(texture(texture_normals, uvCoords));
-	}
-	float diff = max(dot(texNormals.xyz, lightDir), 0.0);
+	float diff = max(dot(norm, lightDir), 0.0);
 	vec3 diffuseLight = diff * sunLightColor;
 
 	if (!has_texture_ambient && !has_texture_diffuse && !has_texture_specular) {
 		fragColor = normalize(vec4(ambientLight + diffuseLight, 1.0) * objectColor);
 	} else {
-		vec4 finalTexture = vec4(0.0);
-
+		vec4 ambientTexture = vec4(0.0);
 		if (has_texture_ambient) {
-			finalTexture = texture(texture_ambient, uvCoords);
+			ambientTexture = texture(texture_ambient, uvCoords);
 		}
 
+		vec4 diffuseTexture = vec4(0.0);
 		if (has_texture_diffuse) {
-			if (finalTexture == vec4(0.0)) {
-				finalTexture = texture(texture_diffuse, uvCoords);
-			} else {
-				finalTexture = mix(finalTexture, texture(texture_diffuse, uvCoords), 0.8);
-			}
+			diffuseTexture = texture(texture_diffuse, uvCoords);
 		}
 
+		vec4 specularTexture = vec4(0.0);
 		if (has_texture_specular) {
-			if (finalTexture == vec4(0.0)) {
-				finalTexture = texture(texture_specular, uvCoords);
-			} else {
-				finalTexture = mix(finalTexture, texture(texture_specular, uvCoords), 0.7);
-			}
+			specularTexture = texture(texture_specular, uvCoords);
+		}
+
+		vec4 normalsTexture = vec4(0.0);
+		if (has_texture_normals) {
+			normalsTexture = texture(texture_normals, uvCoords);
 		}
 
 		vec4 lightContribution = normalize(vec4(ambientLight + diffuseLight, 1.0));
-		fragColor = finalTexture * lightContribution;
+		vec4 textures = normalize(ambientTexture + diffuseTexture + specularTexture + normalsTexture * 0.6);
+
+		fragColor = textures * lightContribution;
 	}
 }
