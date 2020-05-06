@@ -1,14 +1,18 @@
 #include "render.hpp"
 
 Terrain::Terrain(const std::string & dir) {
-    srand (static_cast <unsigned> (time(0)));
+    #ifdef WIN32
+        ::srand( GetTickCount() );
+    #else
+        srand (static_cast <unsigned> (time(0)));
+    #endif
 
     this->dir = dir;
     int start = -100, end = 100, step = 2;
     int numberOfVertices = (end - start) / step;
     for (int row=start;row<end;row+=step) {
         for (int col=start;col<end;col+=step) {
-            const float randHeight = (rand() % 4);
+            const float randHeight = static_cast<const float>((rand() % 4));
             this->mesh.vertices.push_back(Vertex(glm::vec3(row, randHeight, col)));
         }
     }

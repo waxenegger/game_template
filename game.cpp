@@ -97,7 +97,9 @@ void Game::run() {
             case SDL_MOUSEMOTION:
                 if (SDL_GetRelativeMouseMode() == SDL_TRUE)
                     this->camera->updateDirection(
-                            e.motion.xrel, e.motion.yrel, this->frameDuration);
+                            static_cast<float>(e.motion.xrel),
+                            static_cast<float>(e.motion.yrel),
+                            static_cast<float>(this->frameDuration));
                 break;
 
             case SDL_MOUSEWHEEL:
@@ -149,7 +151,7 @@ void Game::run() {
                         break;
                     default:
                         if (SDL_GetRelativeMouseMode() == SDL_TRUE)
-                            this->camera->updateLocation(input, this->frameDuration);
+                            this->camera->updateLocation(input, static_cast<float>(this->frameDuration));
                 }
                 break;
             }
@@ -219,7 +221,7 @@ void Game::createTestModels() {
         teapot->init();
         Entity * ent = new Entity(teapot, new Shader(std::string(this->root + "/res/shaders/textures")));
         ent->setPosition(0.0f,3.0f, 0.0f);
-        ent->setScaleFactor(2.0f);
+        ent->setScaleFactor(1.0f);
         ent->setColor(1.0f, 1.0f, 1.0f, 1.0f);
         this->scene.push_back(std::unique_ptr<Entity>(ent));
     }

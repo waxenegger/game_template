@@ -1,5 +1,10 @@
 #ifndef INCLUDES_HPP
 #define INCLUDES_HPP
+    #ifdef WIN32
+        #include <windows.h>
+        #include <gl\gl.h>
+        #include <gl/glu.h>
+    #endif
 
     #include <iostream>
     #include <fstream>
@@ -7,6 +12,7 @@
     #include <memory>
     #include <vector>
     #include <map>
+    #include <time.h>
 
     #include <SDL.h>
     #include <SDL_image.h>
