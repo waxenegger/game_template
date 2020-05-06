@@ -48,9 +48,9 @@ void main() {
 			normalsTexture = texture(texture_normals, uvCoords);
 		}
 
-		vec4 lightContribution = normalize(vec4(ambientLight + diffuseLight, 1.0));
-		vec4 textures = normalize(ambientTexture + diffuseTexture + specularTexture + normalsTexture * 0.6);
+		vec4 lightContribution = vec4(ambientLight + diffuseLight, 1.0);
+		vec4 textures = ambientTexture + diffuseTexture;
 
-		fragColor = textures * lightContribution;
+		fragColor = normalize(textures * lightContribution);
 	}
 }
