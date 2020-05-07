@@ -52,6 +52,7 @@ Mesh Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
          this->addTextures(material, aiTextureType_HEIGHT, Model::TEXTURE_NORMALS, textures);
      }
 
+     if (mesh->mNumVertices > 0) vertices.reserve(mesh->mNumVertices);
      for(unsigned int i = 0; i < mesh->mNumVertices; i++) {
          Vertex vertex(glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z));
 
@@ -134,6 +135,15 @@ void Model::init() {
 void Model::render(Shader * shader) {
     if (!this->initialized) return;
 
+    if (shader != nullptr && shader->isBeingUsed()) {
+        shader->setMat4("view", Camera::instance()->getViewMatrix());
+        shader->setMat4("projection", Camera::instance()->getPerspective());
+        shader->setVec3("ambientLight",  World::instance()->getAmbientLight());
+        shader->setVec3("sunDirection", World::instance()->getSunDirection());
+        shader->setVec3("sunLightColor", World::instance()->getSunLightColor());
+        shader->setVec3("eyePosition", Camera::instance()->getPosition());
+    }
+
     for (auto & mesh : this->meshes) mesh.render(shader);
 }
 
@@ -144,6 +154,10 @@ void Model::cleanUp() {
 
     this->initialized = false;
     this->loaded = false;
+}
+
+void Model::useMaterial(const Material & material) {
+    for (auto & mesh : this->meshes) mesh.material = material;
 }
 
 const std::string Model::AMBIENT_TEXTURE = "texture_ambient";

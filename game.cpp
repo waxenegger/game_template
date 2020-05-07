@@ -179,6 +179,7 @@ void Game::render() {
     this->clearScreen(0, 0, 0, 1);
 
     if (this->terrain != nullptr) this->terrain->render();
+
     for (auto & entity : this->scene) entity->render();
 
     SDL_GL_SwapWindow(window);
@@ -219,7 +220,7 @@ void Game::createTestModels() {
     Model * teapot = new Model(this->root, "/res/models/teapot.obj");
     if (teapot->hasBeenLoaded()) {
         teapot->init();
-        Entity * ent = new Entity(teapot, new Shader(std::string(this->root + "/res/shaders/textures")));
+        Entity * ent = new Entity(teapot, new Shader());
         ent->setPosition(0.0f,3.0f, 0.0f);
         ent->setScaleFactor(1.0f);
         ent->setColor(1.0f, 1.0f, 1.0f, 1.0f);

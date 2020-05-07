@@ -38,6 +38,16 @@ class Texture {
 
 static std::map<std::string, Texture> TEXTURES;
 
+class Material {
+    public:
+        glm::vec4 ambientColor = glm::vec4(0.2f,0.2f,0.2f,1.0f);
+        glm::vec4 emissiveColor = glm::vec4(0.1f, 0.1f, 0.1f,1.0f);
+        glm::vec4 diffuseColor = glm::vec4(0.9f,0.9f,0.9f,1.0f);
+        glm::vec4 specularColor = glm::vec4(0.1f,0.1f,0.1f,1.0f);
+        float shininess = 1.0f;
+        Material() {};
+};
+
 static const int NUM_SHADERS = 2;
 static const std::string DEFAULT_VERTEX_SHADER =
         "#version 330 core\n"
@@ -57,16 +67,27 @@ static const std::string DEFAULT_FRAGMENT_SHADER =
         "#version 330 core\n"
         "in vec3 norm;\n"
         "in vec3 pos;\n"
+        "uniform vec4 ambientMaterial;\n"
+        "uniform vec4 diffuseMaterial;\n"
+        "uniform vec4 specularMaterial;\n"
+        "uniform vec4 emissiveMaterial;\n"
+        "uniform float shininess;\n"
         "uniform vec3 ambientLight;\n"
-        "uniform vec4 objectColor;\n"
         "uniform vec3 sunDirection;\n"
         "uniform vec3 sunLightColor;\n"
+        "uniform vec3 eyePosition;\n"
         "out vec4 fragColor;\n"
         "void main() {\n"
+        "    vec4 ambience = vec4(ambientLight,1) * ambientMaterial;\n"
+        "    vec4 emissive = emissiveMaterial;\n"
         "    vec3 lightDir = normalize(sunDirection - pos);\n"
         "    float diff = max(dot(norm, lightDir), 0.0);\n"
-        "    vec3 diffuse = diff * sunLightColor;\n"
-        "    fragColor = normalize(vec4(ambientLight + diffuse, 1.0) * objectColor);\n"
+        "    vec4 diffuse = vec4(diff * sunLightColor, 1.0) * diffuseMaterial;\n"
+        "    vec3 eyeDir = normalize(eyePosition - pos);\n"
+        "    vec3 halfDir = normalize(lightDir + eyeDir);\n"
+        "    float spec = pow(max(dot(norm, halfDir), 0.0), shininess);\n"
+        "    vec4 specular = vec4(spec * sunLightColor, 1) * specularMaterial;\n"
+        "    fragColor = emissive + ambience + diffuse + specular;\n"
         "}";
 
 class Shader final {
@@ -137,9 +158,12 @@ class Mesh {
         std::vector<Vertex> vertices;
         std::vector<unsigned int> indices;
         std::vector<Texture> textures;
+        Material material;
         GLuint VAO = 0, VBO = 0, EBO = 0;
 
-        Mesh() {};
+        Mesh() {
+
+        };
 
         Mesh(std::vector<Vertex> & vertices, std::vector<unsigned int> & indices, std::vector<Texture> & textures) {
             this->vertices = vertices;
@@ -199,6 +223,7 @@ class Model {
         bool hasBeenInitialized() {
             return this->initialized;
         };
+        void useMaterial(const Material & material);
 };
 
 class Camera final {
@@ -250,7 +275,6 @@ class Entity {
         glm::vec3 position = glm::vec3(0.0f);
         glm::vec3 rotation = glm::vec3(0.0f);
         float scaleFactor = 1.0f;
-        glm::vec4 color = glm::vec4(1.0f);
 
     public:
         ~Entity();
@@ -284,10 +308,11 @@ class Entity {
         void render();
         void cleanUp();
         void setColor(const float red, const float green, const float blue, const float alpha) {
-        	this->color.x = red;
-        	this->color.y = green;
-        	this->color.z = blue;
-            this->color.a = alpha;
+            if (this->model == nullptr) return;
+
+            Material newColorMaterial;
+            newColorMaterial.diffuseColor = glm::vec4(red, green, blue, alpha);
+            this->model->useMaterial(newColorMaterial);
         }
 };
 

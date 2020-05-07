@@ -49,6 +49,9 @@ Terrain::Terrain(const std::string & dir) {
         i++;
     }
 
+    // set uniform color for now
+    this->mesh.material.diffuseColor = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+
     this->initialized = true;
 }
 
@@ -77,9 +80,9 @@ void Terrain::render(Shader * shader) {
             shader->setMat4("view", Camera::instance()->getViewMatrix());
             shader->setMat4("projection", Camera::instance()->getPerspective());
             shader->setVec3("ambientLight",  World::instance()->getAmbientLight());
-            shader->setVec4("objectColor", glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
             shader->setVec3("sunDirection", World::instance()->getSunDirection());
             shader->setVec3("sunLightColor", World::instance()->getSunLightColor());
+            shader->setVec3("eyePosition", Camera::instance()->getPosition());
             //shader->dumpActiveShaderAttributes();
         }
     }

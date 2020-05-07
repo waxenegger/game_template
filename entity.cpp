@@ -23,17 +23,8 @@ void Entity::setShader(Shader * shader) {
 void Entity::render() {
 	if (this->shader != nullptr) {
 		this->shader->use();
-		if (this->shader->isBeingUsed()) {
+		if (this->shader->isBeingUsed())
 			this->shader->setMat4("model", this->calculateTransformationMatrix());
-			this->shader->setMat4("view", Camera::instance()->getViewMatrix());
-			this->shader->setMat4("projection", Camera::instance()->getPerspective());
-			this->shader->setVec3("ambientLight",  World::instance()->getAmbientLight());
-			this->shader->setVec4("objectColor", this->color);
-			this->shader->setVec3("sunDirection", World::instance()->getSunDirection());
-			this->shader->setVec3("sunLightColor", World::instance()->getSunLightColor());
-
-			//this->shader->dumpActiveShaderAttributes();
-		}
 	}
 
     if (this->model != nullptr) this->model->render(this->shader);

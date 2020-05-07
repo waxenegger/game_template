@@ -65,6 +65,11 @@ void Mesh::render(Shader * shader) {
     glBindVertexArray(this->VAO);
 
     if (shader != nullptr && shader->isBeingUsed()) {
+        shader->setVec4("ambientMaterial", this->material.ambientColor);
+        shader->setVec4("diffuseMaterial", this->material.diffuseColor);
+        shader->setVec4("specularMaterial", this->material.specularColor);
+        shader->setFloat("shininess", this->material.shininess);
+
         shader->setInt(Model::AMBIENT_TEXTURE, 0);
         shader->setInt(Model::DIFFUSE_TEXTURE, 0);
         shader->setInt(Model::SPECULAR_TEXTURE, 0);
