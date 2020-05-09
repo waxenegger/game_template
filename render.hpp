@@ -40,9 +40,9 @@ static std::map<std::string, Texture> TEXTURES;
 
 class Material {
     public:
-        glm::vec4 ambientColor = glm::vec4(0.2f,0.2f,0.2f,1.0f);
+        glm::vec4 ambientColor = glm::vec4(0.3f, 0.3f, 0.3f, 1.0f);
         glm::vec4 emissiveColor = glm::vec4(0.1f, 0.1f, 0.1f,1.0f);
-        glm::vec4 diffuseColor = glm::vec4(0.9f,0.9f,0.9f,1.0f);
+        glm::vec4 diffuseColor = glm::vec4(1.0f);
         glm::vec4 specularColor = glm::vec4(0.1f,0.1f,0.1f,1.0f);
         float shininess = 1.0f;
         Material() {};
@@ -142,7 +142,7 @@ public:
     glm::vec2 uv;
 
     glm::vec3 tangent;
-    glm::vec3 bitTangent;
+    glm::vec3 bitangent;
 
     glm::vec3 colorAmbient;
     glm::vec3 colorDiffuse;
@@ -160,6 +160,7 @@ class Mesh {
         std::vector<Texture> textures;
         Material material;
         GLuint VAO = 0, VBO = 0, EBO = 0;
+        bool useNormalsTexture = true;
 
         Mesh() {
 
@@ -224,6 +225,7 @@ class Model {
             return this->initialized;
         };
         void useMaterial(const Material & material);
+        void useNormalsTexture(const bool & flag);
 };
 
 class Camera final {
@@ -236,8 +238,8 @@ class Camera final {
         float yaw = glm::atan(0.0f, 0.0f);
         float fovy = 45.0f;
 
-        glm::vec3 position = glm::vec3(1.0f);
-        glm::vec3 direction = glm::vec3(0.001f, 0.0f, 0.001f);
+        glm::vec3 position = glm::vec3(10.0f);
+        glm::vec3 direction = glm::vec3(0.001f, 0.0f, -0.001f);
         glm::mat4 perspective = glm::perspective(glm::radians(fovy),
                 static_cast<float>(DEFAULT_WIDTH)
                 / static_cast<float>(DEFAULT_HEIGHT), 0.1f, 10000.0f);

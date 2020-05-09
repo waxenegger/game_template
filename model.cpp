@@ -68,7 +68,7 @@ Mesh Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
                  vertex.tangent = glm::vec3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
 
              if (mesh->mBitangents->Length() == mesh->mNumVertices)
-                 vertex.bitTangent = glm::vec3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
+                 vertex.bitangent = glm::vec3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
          }
 
          if (ambient != nullptr) vertex.colorAmbient = glm::vec3(ambient->r, ambient->g, ambient->b);
@@ -158,6 +158,10 @@ void Model::cleanUp() {
 
 void Model::useMaterial(const Material & material) {
     for (auto & mesh : this->meshes) mesh.material = material;
+}
+
+void Model::useNormalsTexture(const bool & flag) {
+    for (auto & mesh : this->meshes) mesh.useNormalsTexture = flag;
 }
 
 const std::string Model::AMBIENT_TEXTURE = "texture_ambient";

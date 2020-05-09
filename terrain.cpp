@@ -58,7 +58,7 @@ Terrain::Terrain(const std::string & dir) {
 void Terrain::init() {
     this->mesh.init();
 
-    this->terrainShader = new Shader(std::string(this->dir + "/res/shaders/terrain"));
+    this->terrainShader = new Shader();
 
     this->initialized = true;
 }

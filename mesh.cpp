@@ -59,6 +59,12 @@ void Mesh::init() {
 
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
+
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tangent));
+
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, bitangent));
 }
 
 void Mesh::render(Shader * shader) {
@@ -81,8 +87,8 @@ void Mesh::render(Shader * shader) {
             glBindTexture(GL_TEXTURE_2D, texture.getId());
 
             shader->setInt(texture.getType(), i);
-            shader->setInt("has_" + texture.getType(), 1);
-
+            shader->setInt("has_" + texture.getType(),
+                    texture.getType() == Model::TEXTURE_NORMALS && !this->useNormalsTexture ? 0 : 1);
             i++;
         }
     }
@@ -95,6 +101,8 @@ void Mesh::cleanUp() {
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(2);
+    glDisableVertexAttribArray(3);
+    glDisableVertexAttribArray(4);
     glDeleteVertexArrays(1, &this->VAO);
     glDeleteBuffers(1, &this->VBO);
     glDeleteBuffers(1, &this->EBO);

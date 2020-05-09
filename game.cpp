@@ -217,13 +217,17 @@ Game::~Game() {
 }
 
 void Game::createTestModels() {
-    Model * teapot = new Model(this->root, "/res/models/teapot.obj");
-    if (teapot->hasBeenLoaded()) {
-        teapot->init();
-        Entity * ent = new Entity(teapot, new Shader());
-        ent->setPosition(0.0f,3.0f, 0.0f);
-        ent->setScaleFactor(1.0f);
-        ent->setColor(1.0f, 1.0f, 1.0f, 1.0f);
+    Model * model = new Model(this->root, "/res/models/teapot.obj");
+
+    if (model->hasBeenLoaded()) {
+        model->useNormalsTexture(false);
+        model->init();
+
+        Entity * ent = new Entity(model, new Shader(this->root + "/res/shaders/textures"));
+        ent->setPosition(4.0f, 0.0f, -15.0f);
+        ent->setRotation(0, -45, 0);
+        ent->setScaleFactor(2.0f);
+
         this->scene.push_back(std::unique_ptr<Entity>(ent));
     }
 }
