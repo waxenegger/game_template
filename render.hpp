@@ -225,7 +225,7 @@ class Model {
             return this->initialized;
         };
         void useMaterial(const Material & material);
-        void useNormalsTexture(const bool & flag);
+        void useNormalsTexture(const bool flag);
 };
 
 class Camera final {

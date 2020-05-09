@@ -33,10 +33,14 @@ void main() {
 
 	if (has_texture_normals) {
 	    mat3 normalMat = mat3(transpose(inverse(model)));
+
 	    vec3 T = normalize(normalMat * tangent);
 	    vec3 N = normalize(normalMat * normal);
-	    T = normalize(T - dot(T, N) * N);    
-	    mat3 TBN = transpose(mat3(T, cross(N, T), N));    
+	    vec3 B = normalize(normalMat * bitangent);
+
+	    T = normalize(T - dot(T, N) * N);
+	    if (dot(cross(N, T), B) < 0.0f) T *= -1.0f;
+	    mat3 TBN = transpose(mat3(T, cross(N, T), N));
 	    
 	    pos = TBN * pos;
 	    eyePos = TBN * eyePos;

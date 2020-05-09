@@ -160,7 +160,7 @@ void Model::useMaterial(const Material & material) {
     for (auto & mesh : this->meshes) mesh.material = material;
 }
 
-void Model::useNormalsTexture(const bool & flag) {
+void Model::useNormalsTexture(const bool flag) {
     for (auto & mesh : this->meshes) mesh.useNormalsTexture = flag;
 }
 
