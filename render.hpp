@@ -180,23 +180,68 @@ class Renderable {
     protected:
         Shader * shader = new Shader();
         bool initialized = false;
+
+        glm::vec3 position = glm::vec3(0.0f);
+        glm::vec3 rotation = glm::vec3(0.0f);
+        float scaleFactor = 1.0f;
     public:
+        Renderable(const Renderable&) = delete;
+        Renderable& operator=(const Renderable&) = delete;
+        Renderable(Renderable&&) noexcept = default;
+        Renderable& operator=(Renderable&&) noexcept = default;
+
+        Renderable() {};
         virtual void cleanUp() = 0;
         virtual void render() = 0;
-        virtual bool hasBeenInitialized() {
+        bool hasBeenInitialized() {
             return this->initialized;
         };
         virtual ~Renderable() {
             if (this->shader != nullptr) delete this->shader;
         };
-        virtual void useShader(Shader * shader) {
+        void useShader(Shader * shader) {
             if (shader != nullptr) {
                 if (this->shader != nullptr) delete this->shader;
                 this->shader = shader;
             }
         }
-        virtual Shader * getShader() {
+        Shader * getShader() {
             return this->shader;
+        }
+        float getScaleFactor() {
+            return this->scaleFactor;
+        }
+        void setScaleFactor(const float scaleFactor) {
+            this->scaleFactor = scaleFactor;
+        };
+        glm::vec3 getPosition() {
+            return this->position;
+        };
+        glm::vec3 getRotation() {
+            return this->rotation;
+        };
+        void setPosition(const float x, const float y, const float z) {
+            this->position.x = x;
+            this->position.y = y;
+            this->position.z = z;
+        }
+        void setRotation(const int x = 0, const int y = 0, const int z = 0) {
+            this->rotation.x = glm::radians(static_cast<float>(x));
+            this->rotation.y = glm::radians(static_cast<float>(y));
+            this->rotation.z = glm::radians(static_cast<float>(z));
+        }
+        glm::mat4 calculateTransformationMatrix() {
+            glm::mat4 transformation = glm::mat4(1.0f);
+
+            transformation = glm::translate(transformation, this->position);
+
+            transformation = glm::scale(transformation, glm::vec3(this->scaleFactor));
+
+            if (this->rotation.x != 0.0f) transformation = glm::rotate(transformation, this->rotation.x, glm::vec3(1, 0, 0));
+            if (this->rotation.y != 0.0f) transformation = glm::rotate(transformation, this->rotation.y, glm::vec3(0, 1, 0));
+            if (this->rotation.z != 0.0f) transformation = glm::rotate(transformation, this->rotation.z, glm::vec3(0, 0, 1));
+
+            return transformation;
         }
 };
 
@@ -205,6 +250,11 @@ class Terrain : public Renderable {
         std::string dir;
         Mesh mesh;
     public:
+        Terrain(const Terrain&) = delete;
+        Terrain& operator=(const Terrain&) = delete;
+        Terrain(Terrain&&) noexcept = default;
+        Terrain& operator=(Terrain&&) noexcept = default;
+
         Terrain(const std::string & dir);
         void init();
         void render();
@@ -227,6 +277,12 @@ class Model : public Renderable {
         static const std::string DIFFUSE_TEXTURE;
         static const std::string SPECULAR_TEXTURE;
         static const std::string TEXTURE_NORMALS;
+
+        Model(const Model&) = delete;
+        Model& operator=(const Model&) = delete;
+        Model(Model&&) noexcept = default;
+        Model& operator=(Model&&) noexcept = default;
+
         ~Model() { this->cleanUp();}
         Model() {};
         Model(const std::string & dir, const std::string & file);
@@ -248,6 +304,11 @@ class Image : public Renderable {
         Image() {};
         void init();
     public:
+        Image(const Image&) = delete;
+        Image& operator=(const Image&) = delete;
+        Image(Image&&) noexcept = default;
+        Image& operator=(Image&&) noexcept = default;
+
         ~Image();
         static Image * fromFile(std::string file);
         static Image * fromText(std::string fontFile, std::string text, int size);
@@ -322,39 +383,17 @@ class Camera final {
 class Entity : public Renderable {
     private:
         Model * model = nullptr;
-        glm::vec3 position = glm::vec3(0.0f);
-        glm::vec3 rotation = glm::vec3(0.0f);
-        float scaleFactor = 1.0f;
-
     public:
+        Entity(const Entity&) = delete;
+        Entity& operator=(const Entity&) = delete;
+        Entity(Entity&&) noexcept = default;
+        Entity& operator=(Entity&&) noexcept = default;
+
         ~Entity();
         Entity() {};
         Entity(Model * model);
         Entity(Model * model, Shader * shader);
         void setShader(Shader * shader);
-        float getScaleFactor() {
-            return this->scaleFactor;
-        }
-        void setScaleFactor(const float scaleFactor) {
-            this->scaleFactor = scaleFactor;
-        };
-        glm::vec3 getPosition() {
-            return this->position;
-        };
-        glm::vec3 getRotation() {
-            return this->rotation;
-        };
-        void setPosition(const float x, const float y, const float z) {
-            this->position.x = x;
-            this->position.y = y;
-            this->position.z = z;
-        }
-        void setRotation(const int x = 0, const int y = 0, const int z = 0) {
-            this->rotation.x = glm::radians(static_cast<float>(x));
-            this->rotation.y = glm::radians(static_cast<float>(y));
-            this->rotation.z = glm::radians(static_cast<float>(z));
-        }
-        glm::mat4 calculateTransformationMatrix();
         void render();
         void cleanUp();
         void setColor(const float red, const float green, const float blue, const float alpha) {

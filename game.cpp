@@ -237,7 +237,11 @@ void Game::createTestModels() {
     }
 
     //this->scene.push_back(std::unique_ptr<Renderable>(this->factory->createTextImage("HELLO", "FreeSans.ttf", 50)));
-    this->scene.push_back(std::unique_ptr<Renderable>(this->factory->createImage("/res/models/rock.png")));
+    std::unique_ptr<Renderable> img(this->factory->createImage("/res/models/rock.png"));
+    img->setPosition(4.0f, 0.0f, -15.0f);
+    img->setRotation(0, -45, 0);
+    img->setScaleFactor(2.0f);
+    this->scene.push_back(std::move(img));
 }
 
 int main(int argc, char **argv) {

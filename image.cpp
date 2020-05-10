@@ -93,7 +93,7 @@ void Image::render() {
 
     this->shader->use();
     if (this->shader->isBeingUsed()) {
-        this->shader->setMat4("model", glm::mat4(1.0f));
+        this->shader->setMat4("model", this->calculateTransformationMatrix());
         this->shader->setMat4("view", Camera::instance()->getViewMatrix());
         this->shader->setMat4("projection", Camera::instance()->getPerspective());
 
