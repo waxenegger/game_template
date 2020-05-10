@@ -132,19 +132,20 @@ void Model::init() {
     this->initialized = true;
 }
 
-void Model::render(Shader * shader) {
-    if (!this->initialized) return;
+void Model::render() {
+    if (!this->initialized || this->shader == nullptr) return;
 
-    if (shader != nullptr && shader->isBeingUsed()) {
-        shader->setMat4("view", Camera::instance()->getViewMatrix());
-        shader->setMat4("projection", Camera::instance()->getPerspective());
-        shader->setVec3("ambientLight",  World::instance()->getAmbientLight());
-        shader->setVec3("sunDirection", World::instance()->getSunDirection());
-        shader->setVec3("sunLightColor", World::instance()->getSunLightColor());
-        shader->setVec3("eyePosition", Camera::instance()->getPosition());
+    this->shader->use();
+    if (this->shader->isBeingUsed()) {
+        this->shader->setMat4("view", Camera::instance()->getViewMatrix());
+        this->shader->setMat4("projection", Camera::instance()->getPerspective());
+        this->shader->setVec3("ambientLight",  World::instance()->getAmbientLight());
+        this->shader->setVec3("sunDirection", World::instance()->getSunDirection());
+        this->shader->setVec3("sunLightColor", World::instance()->getSunLightColor());
+        this->shader->setVec3("eyePosition", Camera::instance()->getPosition());
+
+        for (auto & mesh : this->meshes) mesh.render(this->shader);
     }
-
-    for (auto & mesh : this->meshes) mesh.render(shader);
 }
 
 void Model::cleanUp() {

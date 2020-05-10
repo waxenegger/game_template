@@ -176,32 +176,47 @@ class Mesh {
         void cleanUp();
 };
 
-class Terrain {
+class Renderable {
+    protected:
+        Shader * shader = new Shader();
+        bool initialized = false;
+    public:
+        virtual void cleanUp() = 0;
+        virtual void render() = 0;
+        virtual bool hasBeenInitialized() {
+            return this->initialized;
+        };
+        virtual ~Renderable() {
+            if (this->shader != nullptr) delete this->shader;
+        };
+        virtual void useShader(Shader * shader) {
+            if (shader != nullptr) {
+                if (this->shader != nullptr) delete this->shader;
+                this->shader = shader;
+            }
+        }
+        virtual Shader * getShader() {
+            return this->shader;
+        }
+};
+
+class Terrain : public Renderable {
     private:
         std::string dir;
         Mesh mesh;
-        Shader * terrainShader = nullptr;
-        bool initialized = false;
     public:
         Terrain(const std::string & dir);
         void init();
         void render();
-        void render(Shader * shader);
-        bool hasBeenInitialized() {
-            return this->initialized;
-        };
-
         void cleanUp();
-        ~Terrain();
 };
 
-class Model {
+class Model : public Renderable {
     private:
         std::string file;
         std::string dir;
         std::vector<Mesh> meshes;
         bool loaded = false;
-        bool initialized = false;
 
         void processNode(const aiNode * node, const aiScene *scene);
         Mesh processMesh(const aiMesh *mesh, const aiScene *scene);
@@ -216,16 +231,50 @@ class Model {
         Model() {};
         Model(const std::string & dir, const std::string & file);
         void init();
-        void render(Shader * shader);
+        void render();
         void cleanUp();
         bool hasBeenLoaded() {
             return this->loaded;
         };
-        bool hasBeenInitialized() {
-            return this->initialized;
-        };
         void useMaterial(const Material & material);
         void useNormalsTexture(const bool flag);
+};
+
+class Image : public Renderable {
+    private:
+        unsigned int textureId = 0;
+        Mesh mesh;
+        SDL_Surface * image = nullptr;
+        Image() {};
+        void init();
+    public:
+        ~Image();
+        static Image * fromFile(std::string file);
+        static Image * fromText(std::string fontFile, std::string text, int size);
+        static bool findImageFormat(SDL_Surface * surface, GLenum * format);
+        void render();
+        void cleanUp();
+};
+
+class ModelFactory final {
+    private:
+        std::string root = "./";
+        static ModelFactory * singleton;
+        ModelFactory() {};
+        ModelFactory(std::string & dir);
+    public:
+        static ModelFactory * instance() {
+            if (ModelFactory::singleton == nullptr) ModelFactory::singleton = new ModelFactory();
+            return ModelFactory::singleton;
+        }
+        static ModelFactory * instance(std::string & dir) {
+            if (ModelFactory::singleton == nullptr) ModelFactory::singleton = new ModelFactory(dir);
+            return ModelFactory::singleton;
+        }
+
+        Model * createModel(std::string file);
+        Image * createTextImage(std::string text, std::string font = "arial.ttf", int size = 25);
+        Image * createImage(std::string file);
 };
 
 class Camera final {
@@ -270,17 +319,16 @@ class Camera final {
         }
 };
 
-class Entity {
+class Entity : public Renderable {
     private:
         Model * model = nullptr;
-        Shader * shader = nullptr;
         glm::vec3 position = glm::vec3(0.0f);
         glm::vec3 rotation = glm::vec3(0.0f);
         float scaleFactor = 1.0f;
 
     public:
         ~Entity();
-        Entity() { this->shader = new Shader();};
+        Entity() {};
         Entity(Model * model);
         Entity(Model * model, Shader * shader);
         void setShader(Shader * shader);

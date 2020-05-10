@@ -58,38 +58,27 @@ Terrain::Terrain(const std::string & dir) {
 void Terrain::init() {
     this->mesh.init();
 
-    this->terrainShader = new Shader();
-
     this->initialized = true;
 }
 
 void Terrain::render() {
-    if (!this->initialized || this->terrainShader == nullptr) return;
+    if (!this->initialized || this->shader == nullptr) return;
 
-    this->render(this->terrainShader);
-}
+    this->shader->use();
+    if (this->shader->isBeingUsed()) {
+        this->shader->setMat4("model", glm::mat4(1.0f));
+        this->shader->setMat4("view", Camera::instance()->getViewMatrix());
+        this->shader->setMat4("projection", Camera::instance()->getPerspective());
+        this->shader->setVec3("ambientLight",  World::instance()->getAmbientLight());
+        this->shader->setVec3("sunDirection", World::instance()->getSunDirection());
+        this->shader->setVec3("sunLightColor", World::instance()->getSunLightColor());
+        this->shader->setVec3("eyePosition", Camera::instance()->getPosition());
+        //shader->dumpActiveShaderAttributes();
 
-void Terrain::render(Shader * shader) {
-    if (!this->initialized) return;
+        this->mesh.render(this->shader);
 
-    if (shader == nullptr) this->render();
-    else {
-        shader->use();
-        if (shader->isBeingUsed()) {
-            shader->setMat4("model", glm::mat4(1.0f));
-            shader->setMat4("view", Camera::instance()->getViewMatrix());
-            shader->setMat4("projection", Camera::instance()->getPerspective());
-            shader->setVec3("ambientLight",  World::instance()->getAmbientLight());
-            shader->setVec3("sunDirection", World::instance()->getSunDirection());
-            shader->setVec3("sunLightColor", World::instance()->getSunLightColor());
-            shader->setVec3("eyePosition", Camera::instance()->getPosition());
-            //shader->dumpActiveShaderAttributes();
-        }
+        this->shader->stopUse();
     }
-
-    this->mesh.render(shader);
-
-    if (shader != nullptr) shader->stopUse();
 }
 
 void Terrain::cleanUp() {
@@ -98,8 +87,4 @@ void Terrain::cleanUp() {
     this->mesh.cleanUp();
 
     this->initialized = false;
-}
-
-Terrain::~Terrain() {
-    if (this->terrainShader != nullptr) delete this->terrainShader;
 }

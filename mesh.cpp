@@ -23,17 +23,10 @@ void Mesh::init() {
         const std::string textureLocation(texture.getPath());
 
         SDL_Surface * textureSurface = IMG_Load(textureLocation.c_str());
-        if(textureSurface != nullptr) {
-            GLenum texture_format;
-            const GLint nOfColors = textureSurface->format->BytesPerPixel;
 
-            if (nOfColors == 4) {
-               if (textureSurface->format->Rmask == 0x000000ff) texture_format = GL_RGBA;
-               else texture_format = GL_BGRA;
-            } else if (nOfColors == 3) {
-               if (textureSurface->format->Rmask == 0x000000ff) texture_format = GL_RGB;
-               else texture_format = GL_BGR;
-            } else {
+        if(textureSurface != nullptr) {
+            GLenum imageFormat;
+            if (!Image::findImageFormat(textureSurface, &imageFormat)) {
                 std::cerr << "Unsupported Texture Format: " << textureLocation << std::endl;
                 SDL_FreeSurface(textureSurface);
                 continue;
@@ -49,7 +42,7 @@ void Mesh::init() {
             glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
             glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureSurface->w, textureSurface->h, 0, texture_format,
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureSurface->w, textureSurface->h, 0, imageFormat,
                     GL_UNSIGNED_BYTE, textureSurface->pixels);
             glGenerateMipmap(GL_TEXTURE_2D);
             SDL_FreeSurface(textureSurface);
@@ -75,11 +68,6 @@ void Mesh::render(Shader * shader) {
         shader->setVec4("diffuseMaterial", this->material.diffuseColor);
         shader->setVec4("specularMaterial", this->material.specularColor);
         shader->setFloat("shininess", this->material.shininess);
-
-        shader->setInt(Model::AMBIENT_TEXTURE, 0);
-        shader->setInt(Model::DIFFUSE_TEXTURE, 0);
-        shader->setInt(Model::SPECULAR_TEXTURE, 0);
-        shader->setInt(Model::TEXTURE_NORMALS, 0);
 
         int i=0;
         for (auto & texture : this->textures) {

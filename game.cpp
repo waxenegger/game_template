@@ -3,6 +3,8 @@
 Game::Game(std::string root) {
     this->root = root;
     if (this->root[static_cast<int>(root.length())-1] != '/') this->root.append("/");
+    this->factory = ModelFactory::instance(this->root);
+
 }
 
 /*
@@ -66,6 +68,8 @@ bool Game::init() {
             }
         }
     }
+
+    TTF_Init();
 
     return true;
 }
@@ -213,23 +217,27 @@ Game::~Game() {
     if (this->terrain != nullptr) delete this->terrain;
     if (this->camera != nullptr) delete this->camera;
     if (this->world != nullptr) delete this->world;
+    if (this->factory != nullptr) delete this->factory;
     cleanUp();
 }
 
 void Game::createTestModels() {
-    Model * model = new Model(this->root, "/res/models/teapot.obj");
+    std::unique_ptr<Model> model(this->factory->createModel("/res/models/teapot.obj"));
 
     if (model->hasBeenLoaded()) {
-        model->useNormalsTexture(false);
+        model->useShader(new Shader(this->root + "/res/shaders/textures"));
         model->init();
 
-        Entity * ent = new Entity(model, new Shader(this->root + "/res/shaders/textures"));
+        Entity * ent = new Entity(model.release());
         ent->setPosition(4.0f, 0.0f, -15.0f);
         ent->setRotation(0, -45, 0);
         ent->setScaleFactor(2.0f);
 
-        this->scene.push_back(std::unique_ptr<Entity>(ent));
+        this->scene.push_back(std::unique_ptr<Renderable>(ent));
     }
+
+    //this->scene.push_back(std::unique_ptr<Renderable>(this->factory->createTextImage("HELLO", "FreeSans.ttf", 50)));
+    this->scene.push_back(std::unique_ptr<Renderable>(this->factory->createImage("/res/models/rock.png")));
 }
 
 int main(int argc, char **argv) {
@@ -237,6 +245,7 @@ int main(int argc, char **argv) {
     if (game.init()) game.run();
 
     TEXTURES.clear();
+    TTF_Quit();
 
     return 0;
 }

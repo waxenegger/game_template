@@ -19,10 +19,12 @@ class Game {
         SDL_Window * window = nullptr;
         SDL_GLContext glContext = nullptr;
 
+        ModelFactory * factory = nullptr;
+
         World * world = World::instance();
         Camera * camera = Camera::instance(-5.0f, 7.0f, -5.0f);
 
-        std::vector<std::unique_ptr<Entity>> scene;
+        std::vector<std::unique_ptr<Renderable>> scene;
         Terrain * terrain = nullptr;
 
         void clearScreen(float r, float g, float b, float a);

@@ -14,22 +14,20 @@ Entity::Entity(Model * model, Shader * shader) : Entity(model) {
 }
 
 void Entity::setShader(Shader * shader) {
-	if (shader != nullptr) {
-		if (this->shader != nullptr) delete this->shader;
-		this->shader = shader;
-	}
+    if (this->model != nullptr) this->model->useShader(shader);
 }
 
 void Entity::render() {
-	if (this->shader != nullptr) {
-		this->shader->use();
-		if (this->shader->isBeingUsed())
-			this->shader->setMat4("model", this->calculateTransformationMatrix());
+	if (this->model == nullptr || this->model->getShader() == nullptr) return;
+
+	this->model->getShader()->use();
+	if (this->model->getShader()->isBeingUsed()) {
+	    this->model->getShader()->setMat4("model", this->calculateTransformationMatrix());
+
+	    this->model->render();
+
+	    this->model->getShader()->stopUse();
 	}
-
-    if (this->model != nullptr) this->model->render(this->shader);
-
-    if (this->shader != nullptr) this->shader->stopUse();
 }
 
 void Entity::cleanUp() { if (this->model != nullptr) this->model->cleanUp(); }
@@ -50,5 +48,4 @@ glm::mat4 Entity::calculateTransformationMatrix() {
 
 Entity::~Entity() {
 	if (this->model != nullptr) delete this->model;
-	if (this->shader != nullptr) delete this->shader;
 };
