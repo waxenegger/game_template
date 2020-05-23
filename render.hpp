@@ -7,47 +7,6 @@
 static const int DEFAULT_WIDTH = 640;
 static const int DEFAULT_HEIGHT = 480;
 
-class Texture {
-    private:
-        unsigned int id = 0;
-        std::string type;
-        std::string path;
-    public:
-        unsigned int getId() {
-            return  this->id;
-        }
-        std::string getType() {
-            return this->type;
-        }
-        std::string getPath() {
-            return this->path;
-        }
-        void setId(const unsigned int & id) {
-            this->id = id;
-        }
-        void setType(const std::string & type) {
-            this->type = type;
-        }
-        void setPath(const std::string & path) {
-            this->path = path;
-        }
-        void cleanUp() {
-            glDeleteTextures(1, &this->id);
-        }
-};
-
-static std::map<std::string, Texture> TEXTURES;
-
-class Material {
-    public:
-        glm::vec4 ambientColor = glm::vec4(0.3f, 0.3f, 0.3f, 1.0f);
-        glm::vec4 emissiveColor = glm::vec4(0.1f, 0.1f, 0.1f,1.0f);
-        glm::vec4 diffuseColor = glm::vec4(1.0f);
-        glm::vec4 specularColor = glm::vec4(0.1f,0.1f,0.1f,1.0f);
-        float shininess = 1.0f;
-        Material() {};
-};
-
 static const int NUM_SHADERS = 2;
 static const std::string DEFAULT_VERTEX_SHADER =
         "#version 330 core\n"
@@ -89,6 +48,35 @@ static const std::string DEFAULT_FRAGMENT_SHADER =
         "    vec4 specular = vec4(spec * sunLightColor, 1) * specularMaterial;\n"
         "    fragColor = emissive + ambience + diffuse + specular;\n"
         "}";
+
+
+class Material {
+    public:
+        glm::vec4 ambientColor = glm::vec4(0.3f, 0.3f, 0.3f, 1.0f);
+        glm::vec4 emissiveColor = glm::vec4(0.1f, 0.1f, 0.1f,1.0f);
+        glm::vec4 diffuseColor = glm::vec4(1.0f);
+        glm::vec4 specularColor = glm::vec4(0.1f,0.1f,0.1f,1.0f);
+        float shininess = 1.0f;
+        Material() {};
+};
+
+class Vertex {
+public:
+    glm::vec3 position;
+    glm::vec3 normal;
+    glm::vec2 uv;
+
+    glm::vec3 tangent;
+    glm::vec3 bitangent;
+
+    glm::vec3 colorAmbient;
+    glm::vec3 colorDiffuse;
+    glm::vec3 colorSpecular;
+
+    Vertex(glm::vec3 position) {
+        this->position = position;
+    }
+};
 
 class Shader final {
     private:
@@ -135,22 +123,73 @@ class Shader final {
         void dumpActiveShaderAttributes();
 };
 
-class Vertex {
-public:
-    glm::vec3 position;
-    glm::vec3 normal;
-    glm::vec2 uv;
+class Texture {
+    private:
+        unsigned int id = 0;
+        std::string type;
+        std::string path;
+        bool loaded = false;
+        bool valid = false;
+        GLenum imageFormat;
+        SDL_Surface * textureSurface = nullptr;
+    public:
+        unsigned int getId() {
+            return  this->id;
+        }
+        std::string getType() {
+            return this->type;
+        }
+        bool isValid() {
+            return this->valid;
+        }
+        GLenum getImageFormat() {
+            return this->imageFormat;
+        }
+        SDL_Surface * getTextureSurface() {
+            return this->textureSurface;
+        }
+        void setId(const unsigned int & id) {
+            this->id = id;
+        }
+        void setType(const std::string & type) {
+            this->type = type;
+        }
+        void setPath(const std::string & path) {
+            this->path = path;
+        }
+        void cleanUp() {
+            glDeleteTextures(1, &this->id);
+        }
+        void load() {
+            if (!this->loaded) {
+                this->textureSurface = IMG_Load(this->path.c_str());
+                if (this->textureSurface != nullptr) {
+                    if (!Texture::findImageFormat(this->textureSurface, &this->imageFormat)) {
+                        std::cerr << "Unsupported Texture Format: " << this->path << std::endl;
+                    } else this->valid = true;
+                } else std::cerr << "Failed to load texture: " << this->path << std::endl;
+                this->loaded = true;
+            }
+        }
+        ~Texture() {
+            if (this->textureSurface != nullptr)
+                SDL_FreeSurface(this->textureSurface);
+        }
+        static bool findImageFormat(SDL_Surface * surface, GLenum * format) {
+            if (surface == nullptr || format == nullptr) return false;
 
-    glm::vec3 tangent;
-    glm::vec3 bitangent;
+            const GLint nOfColors = surface->format->BytesPerPixel;
 
-    glm::vec3 colorAmbient;
-    glm::vec3 colorDiffuse;
-    glm::vec3 colorSpecular;
+            if (nOfColors == 4) {
+               if (surface->format->Rmask == 0x000000ff) *format = GL_RGBA;
+               else *format = GL_BGRA;
+            } else if (nOfColors == 3) {
+               if (surface->format->Rmask == 0x000000ff) *format = GL_RGB;
+               else *format = GL_BGR;
+            } else return false;
 
-    Vertex(glm::vec3 position) {
-        this->position = position;
-    }
+            return true;
+        }
 };
 
 class Mesh {
@@ -162,9 +201,7 @@ class Mesh {
         GLuint VAO = 0, VBO = 0, EBO = 0;
         bool useNormalsTexture = true;
 
-        Mesh() {
-
-        };
+        Mesh() {};
 
         Mesh(std::vector<Vertex> & vertices, std::vector<unsigned int> & indices, std::vector<Texture> & textures) {
             this->vertices = vertices;
@@ -178,8 +215,8 @@ class Mesh {
 
 class Renderable {
     protected:
-        Shader * shader = new Shader();
         bool initialized = false;
+        Shader * shader = new Shader();
 
         glm::vec3 position = glm::vec3(0.0f);
         glm::vec3 rotation = glm::vec3(0.0f);
@@ -193,21 +230,6 @@ class Renderable {
         Renderable() {};
         virtual void cleanUp() = 0;
         virtual void render() = 0;
-        bool hasBeenInitialized() {
-            return this->initialized;
-        };
-        virtual ~Renderable() {
-            if (this->shader != nullptr) delete this->shader;
-        };
-        void useShader(Shader * shader) {
-            if (shader != nullptr) {
-                if (this->shader != nullptr) delete this->shader;
-                this->shader = shader;
-            }
-        }
-        Shader * getShader() {
-            return this->shader;
-        }
         float getScaleFactor() {
             return this->scaleFactor;
         }
@@ -243,6 +265,21 @@ class Renderable {
 
             return transformation;
         }
+        Shader * getShader() {
+            return this->shader;
+        }
+        void useShader(Shader * shader) {
+            if (shader != nullptr) {
+                if (this->shader != nullptr) delete this->shader;
+                this->shader = shader;
+            }
+        }
+        bool hasBeenInitialized() {
+            return this->initialized;
+        };
+        virtual ~Renderable() {
+            if (this->shader != nullptr) delete this->shader;
+        }
 };
 
 class Terrain : public Renderable {
@@ -261,12 +298,13 @@ class Terrain : public Renderable {
         void cleanUp();
 };
 
-class Model : public Renderable {
+class Model {
     private:
         std::string file;
         std::string dir;
         std::vector<Mesh> meshes;
         bool loaded = false;
+        bool initialized = false;
 
         void processNode(const aiNode * node, const aiScene *scene);
         Mesh processMesh(const aiMesh *mesh, const aiScene *scene);
@@ -287,7 +325,7 @@ class Model : public Renderable {
         Model() {};
         Model(const std::string & dir, const std::string & file);
         void init();
-        void render();
+        void render(Shader * shader);
         void cleanUp();
         bool hasBeenLoaded() {
             return this->loaded;
@@ -309,10 +347,8 @@ class Image : public Renderable {
         Image(Image&&) noexcept = default;
         Image& operator=(Image&&) noexcept = default;
 
-        ~Image();
         static Image * fromFile(std::string file);
         static Image * fromText(std::string fontFile, std::string text, int size);
-        static bool findImageFormat(SDL_Surface * surface, GLenum * format);
         void render();
         void cleanUp();
 };
@@ -382,18 +418,16 @@ class Camera final {
 
 class Entity : public Renderable {
     private:
-        Model * model = nullptr;
+        std::shared_ptr<Model> model = nullptr;
     public:
         Entity(const Entity&) = delete;
         Entity& operator=(const Entity&) = delete;
         Entity(Entity&&) noexcept = default;
         Entity& operator=(Entity&&) noexcept = default;
 
-        ~Entity();
         Entity() {};
-        Entity(Model * model);
-        Entity(Model * model, Shader * shader);
-        void setShader(Shader * shader);
+        Entity(std::shared_ptr<Model> model);
+        Entity(std::shared_ptr<Model> model, Shader * shader);
         void render();
         void cleanUp();
         void setColor(const float red, const float green, const float blue, const float alpha) {

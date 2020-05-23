@@ -1,4 +1,5 @@
 #include "render.hpp"
+#include "game.hpp"
 
 Model::Model(const std::string & dir, const std::string & file) {
     this->file = std::string(dir + file);
@@ -111,15 +112,19 @@ void Model::addTextures(const aiMaterial * mat, const aiTextureType type, const 
 
         const std::string fullyQualifiedName(this->dir + "/res/models/" + std::string(str.C_Str(), str.length));
 
-        std::map<std::string, Texture>::iterator val(TEXTURES.find(fullyQualifiedName));
+        std::map<std::string, std::unique_ptr<Texture> >::iterator val(Game::TEXTURES.find(fullyQualifiedName));
 
-        if (val != TEXTURES.end()) textures.push_back(val->second);
+        if (val != Game::TEXTURES.end()) textures.push_back(*val->second.get());
         else {
-            Texture texture;
-            texture.setType(name);
-            texture.setPath(fullyQualifiedName);
-            textures.push_back(texture);
-            TEXTURES[str.C_Str()] = texture;
+            std::unique_ptr<Texture> texture(new Texture());
+            texture->setType(name);
+            texture->setPath(fullyQualifiedName);
+            texture->load();
+
+            if (texture->isValid()) {
+                textures.push_back(*texture);
+                Game::TEXTURES[str.C_Str()] = std::move(texture);
+            }
         }
     }
 }
@@ -132,19 +137,19 @@ void Model::init() {
     this->initialized = true;
 }
 
-void Model::render() {
-    if (!this->initialized || this->shader == nullptr) return;
+void Model::render(Shader * shader) {
+    if (!this->initialized || shader == nullptr) return;
 
-    this->shader->use();
-    if (this->shader->isBeingUsed()) {
-        this->shader->setMat4("view", Camera::instance()->getViewMatrix());
-        this->shader->setMat4("projection", Camera::instance()->getPerspective());
-        this->shader->setVec3("ambientLight",  World::instance()->getAmbientLight());
-        this->shader->setVec3("sunDirection", World::instance()->getSunDirection());
-        this->shader->setVec3("sunLightColor", World::instance()->getSunLightColor());
-        this->shader->setVec3("eyePosition", Camera::instance()->getPosition());
+    shader->use();
+    if (shader->isBeingUsed()) {
+        shader->setMat4("view", Camera::instance()->getViewMatrix());
+        shader->setMat4("projection", Camera::instance()->getPerspective());
+        shader->setVec3("ambientLight",  World::instance()->getAmbientLight());
+        shader->setVec3("sunDirection", World::instance()->getSunDirection());
+        shader->setVec3("sunLightColor", World::instance()->getSunLightColor());
+        shader->setVec3("eyePosition", Camera::instance()->getPosition());
 
-        for (auto & mesh : this->meshes) mesh.render(this->shader);
+        for (auto & mesh : this->meshes) mesh.render(shader);
     }
 }
 

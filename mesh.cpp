@@ -20,34 +20,24 @@ void Mesh::init() {
 
     int i=0;
     for (auto & texture : this->textures) {
-        const std::string textureLocation(texture.getPath());
+        if (!texture.isValid()) continue;
 
-        SDL_Surface * textureSurface = IMG_Load(textureLocation.c_str());
+        SDL_Surface * textureSurface = texture.getTextureSurface();
 
-        if(textureSurface != nullptr) {
-            GLenum imageFormat;
-            if (!Image::findImageFormat(textureSurface, &imageFormat)) {
-                std::cerr << "Unsupported Texture Format: " << textureLocation << std::endl;
-                SDL_FreeSurface(textureSurface);
-                continue;
-            }
+        GLuint id = 0;
+        glGenTextures(1, &id);
+        texture.setId(id);
 
-            GLuint id = 0;
-            glGenTextures(1, &id);
-            texture.setId(id);
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, texture.getId());
 
-            glActiveTexture(GL_TEXTURE0 + i);
-            glBindTexture(GL_TEXTURE_2D, texture.getId());
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
-            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureSurface->w, textureSurface->h, 0, imageFormat,
-                    GL_UNSIGNED_BYTE, textureSurface->pixels);
-            glGenerateMipmap(GL_TEXTURE_2D);
-            SDL_FreeSurface(textureSurface);
-            i++;
-        } else std::cerr << "Failed to load texture: " << textureLocation << std::endl;
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureSurface->w, textureSurface->h, 0, texture.getImageFormat(),
+                GL_UNSIGNED_BYTE, textureSurface->pixels);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        i++;
     }
 
     glEnableVertexAttribArray(2);

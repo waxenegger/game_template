@@ -1,10 +1,23 @@
 #include "render.hpp"
+#include "game.hpp"
 
 Image * Image::fromFile(std::string file) {
     Image * img = new Image();
 
-    img->image = IMG_Load(file.c_str());
-    if (img->image != nullptr) img->init();
+    std::map<std::string, std::unique_ptr<Texture> >::iterator val(Game::TEXTURES.find(file));
+
+    if (val == Game::TEXTURES.end()) {
+        std::unique_ptr<Texture> texture(new Texture());
+        texture->setType(Model::DIFFUSE_TEXTURE);
+        texture->setPath(file);
+        texture->load();
+        if (texture->isValid()) Game::TEXTURES[file] = std::move(texture);
+    }
+
+    if (Game::TEXTURES[file]->isValid()) {
+        img->image = Game::TEXTURES[file]->getTextureSurface();
+        img->init();
+    }
 
     return img;
 }
@@ -31,7 +44,7 @@ void Image::init() {
     if (this->image == nullptr) return;
 
     GLenum imageFormat;
-    if (!Image::findImageFormat(this->image, &imageFormat)) {
+    if (!Texture::findImageFormat(this->image, &imageFormat)) {
         std::cerr << "Unsupported Image Format: " << std::endl;
         return;
     }
@@ -122,27 +135,7 @@ void Image::render() {
     }
 }
 
-bool Image::findImageFormat(SDL_Surface * surface, GLenum * format) {
-    if (surface == nullptr || format == nullptr) return false;
-
-    const GLint nOfColors = surface->format->BytesPerPixel;
-
-    if (nOfColors == 4) {
-       if (surface->format->Rmask == 0x000000ff) *format = GL_RGBA;
-       else *format = GL_BGRA;
-    } else if (nOfColors == 3) {
-       if (surface->format->Rmask == 0x000000ff) *format = GL_RGB;
-       else *format = GL_BGR;
-    } else return false;
-
-    return true;
-}
-
 void Image::cleanUp() {
     glDeleteTextures(1, &this->textureId);
     this->mesh.cleanUp();
-}
-
-Image::~Image() {
-    if (this->image != nullptr) SDL_FreeSurface(this->image);
 }

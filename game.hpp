@@ -42,6 +42,8 @@ class Game {
         float getLastFrameDuration() const;
         virtual ~Game();
         void createTestModels();
+
+        static std::map<std::string, std::unique_ptr<Texture> > TEXTURES;
 };
 
 #endif

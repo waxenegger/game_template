@@ -191,6 +191,7 @@ void Game::render() {
     const Uint32 currentTime = SDL_GetTicks();
     this->frameDuration = currentTime - this->frameStart;
     this->frameStart = currentTime;
+    //std::cout << this->frameDuration << std::endl;
 }
 
 float Game::getAspectRatio() const {
@@ -222,34 +223,42 @@ Game::~Game() {
 }
 
 void Game::createTestModels() {
-    std::unique_ptr<Model> model(this->factory->createModel("/res/models/teapot.obj"));
 
+    std::shared_ptr<Model> model(this->factory->createModel("/res/models/teapot.obj"));
     if (model->hasBeenLoaded()) {
-        model->useShader(new Shader(this->root + "/res/shaders/textures"));
         model->init();
 
-        Entity * ent = new Entity(model.release());
-        ent->setPosition(4.0f, 0.0f, -15.0f);
-        ent->setRotation(0, -45, 0);
-        ent->setScaleFactor(2.0f);
+        for (int x = 0;x< 10; x++) {
+            Entity * ent = new Entity(model);
+            ent->useShader(new Shader(this->root + "/res/shaders/textures"));
+            ent->setPosition(4.0f + x*10, 0.0f, -15.0f);
+            ent->setRotation(0, -45, 0);
+            ent->setScaleFactor(2.0f);
 
-        this->scene.push_back(std::unique_ptr<Renderable>(ent));
+            this->scene.push_back(std::unique_ptr<Renderable>(std::move(ent)));
+        }
     }
 
-    //this->scene.push_back(std::unique_ptr<Renderable>(this->factory->createTextImage("HELLO", "FreeSans.ttf", 50)));
-    std::unique_ptr<Renderable> img(this->factory->createImage("/res/models/rock.png"));
-    img->setPosition(4.0f, 0.0f, -15.0f);
-    img->setRotation(0, -45, 0);
-    img->setScaleFactor(2.0f);
-    this->scene.push_back(std::move(img));
+    for (int x = 0;x < 10; x++) {
+        std::unique_ptr<Renderable> img(this->factory->createImage("/res/models/rock.png"));
+        img->setPosition(4.0f + 10 * x, 0.0f, -15.0f);
+        img->setRotation(0, -45, 0);
+        img->setScaleFactor(2.0f);
+        this->scene.push_back(std::move(img));
+    }
+
 }
+std::map<std::string, std::unique_ptr<Texture> > Game::TEXTURES;
+
 
 int main(int argc, char **argv) {
     Game game((argc > 1) ? std::string(argv[1]) : "./");
     if (game.init()) game.run();
 
-    TEXTURES.clear();
+    Game::TEXTURES.clear();
+
     TTF_Quit();
 
     return 0;
 }
+
