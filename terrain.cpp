@@ -51,6 +51,7 @@ Terrain::Terrain(const std::string & dir) {
 
     // set uniform color for now
     this->mesh.material.diffuseColor = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+    this->mesh.modelMatrices.push_back(glm::mat4(1.0f));
 
     this->initialized = true;
 }
@@ -66,7 +67,6 @@ void Terrain::render() {
 
     this->shader->use();
     if (this->shader->isBeingUsed()) {
-        this->shader->setMat4("model", glm::mat4(1.0f));
         this->shader->setMat4("view", Camera::instance()->getViewMatrix());
         this->shader->setMat4("projection", Camera::instance()->getPerspective());
         this->shader->setVec3("ambientLight",  World::instance()->getAmbientLight());

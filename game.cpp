@@ -103,7 +103,7 @@ void Game::run() {
                     this->camera->updateDirection(
                             static_cast<float>(e.motion.xrel),
                             static_cast<float>(e.motion.yrel),
-                            static_cast<float>(this->frameDuration));
+                            static_cast<float>(FIXED_DRAW_INTERVAL));
                 break;
 
             case SDL_MOUSEWHEEL:
@@ -155,7 +155,7 @@ void Game::run() {
                         break;
                     default:
                         if (SDL_GetRelativeMouseMode() == SDL_TRUE)
-                            this->camera->updateLocation(input, static_cast<float>(this->frameDuration));
+                            this->camera->updateLocation(input, static_cast<float>(FIXED_DRAW_INTERVAL));
                 }
                 break;
             }
@@ -180,18 +180,22 @@ void Game::clearScreen(float r, float g, float b, float a) {
 void Game::render() {
     glPolygonMode(GL_FRONT_AND_BACK, this->wireframe ? GL_LINE : GL_FILL);
 
-    this->clearScreen(0, 0, 0, 1);
-
-    if (this->terrain != nullptr) this->terrain->render();
-
-    for (auto & entity : this->scene) entity->render();
-
-    SDL_GL_SwapWindow(window);
-
     const Uint32 currentTime = SDL_GetTicks();
-    this->frameDuration = currentTime - this->frameStart;
-    this->frameStart = currentTime;
-    //std::cout << this->frameDuration << std::endl;
+    const Uint32 diff = this->forceFixedFrameRate ? (currentTime - this->frameDrawn) : 0;
+
+    if (diff == 0 || diff > FIXED_DRAW_INTERVAL) {
+        const Uint32 frameStart = SDL_GetTicks();
+        this->clearScreen(0, 0, 0, 1);
+
+        if (this->terrain != nullptr) this->terrain->render();
+
+        for (auto & entity : this->scene) entity->render();
+
+        SDL_GL_SwapWindow(window);
+
+        this->frameDrawn = SDL_GetTicks();
+        this->frameDuration = this->frameDrawn - frameStart;
+    }
 }
 
 float Game::getAspectRatio() const {
@@ -226,27 +230,37 @@ void Game::createTestModels() {
 
     std::shared_ptr<Model> model(this->factory->createModel("/res/models/teapot.obj"));
     if (model->hasBeenLoaded()) {
+        model->useNormalsTexture(false);
         model->init();
 
-        for (int x = 0;x< 10; x++) {
+        for (int x = 0;x< 1; x++) {
             Entity * ent = new Entity(model);
             ent->useShader(new Shader(this->root + "/res/shaders/textures"));
-            ent->setPosition(4.0f + x*10, 0.0f, -15.0f);
+            ent->setPosition(4.0f, 0.0f, -15.0f);
             ent->setRotation(0, -45, 0);
             ent->setScaleFactor(2.0f);
+
+            for (int j=0;j<100;j++) {
+                glm::vec3 pos = ent->getPosition();
+                ent->setPosition(pos.x + 10 , pos.y, pos.z);
+                model->addModelInstance(ent->calculateTransformationMatrix());
+            }
+
+            ent->setPosition(4.0f, 0.0f, -15.0f);
 
             this->scene.push_back(std::unique_ptr<Renderable>(std::move(ent)));
         }
     }
 
-    for (int x = 0;x < 10; x++) {
+    /*
+    for (int x = 0;x < 1; x++) {
         std::unique_ptr<Renderable> img(this->factory->createImage("/res/models/rock.png"));
         img->setPosition(4.0f + 10 * x, 0.0f, -15.0f);
         img->setRotation(0, -45, 0);
         img->setScaleFactor(2.0f);
         this->scene.push_back(std::move(img));
     }
-
+    */
 }
 std::map<std::string, std::unique_ptr<Texture> > Game::TEXTURES;
 

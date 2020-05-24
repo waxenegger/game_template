@@ -6,13 +6,14 @@
 
 static const int DEFAULT_WIDTH = 640;
 static const int DEFAULT_HEIGHT = 480;
+static const Uint32 FIXED_DRAW_INTERVAL = 17;
 
 static const int NUM_SHADERS = 2;
 static const std::string DEFAULT_VERTEX_SHADER =
         "#version 330 core\n"
         "in vec3 position;\n"
         "in vec3 normal;\n"
-        "uniform mat4 model;\n"
+        "in mat4 model;\n"
         "uniform mat4 view;\n"
         "uniform mat4 projection;\n"
         "out vec3 norm;\n"
@@ -196,14 +197,15 @@ class Mesh {
     public:
         std::vector<Vertex> vertices;
         std::vector<unsigned int> indices;
-        std::vector<Texture> textures;
+        std::vector<Texture * > textures;
+        std::vector<glm::mat4> modelMatrices;
         Material material;
-        GLuint VAO = 0, VBO = 0, EBO = 0;
+        GLuint VAO = 0, VBO = 0, EBO = 0, MODEL_MATRIX = 0;
         bool useNormalsTexture = true;
 
         Mesh() {};
 
-        Mesh(std::vector<Vertex> & vertices, std::vector<unsigned int> & indices, std::vector<Texture> & textures) {
+        Mesh(std::vector<Vertex> & vertices, std::vector<unsigned int> & indices, std::vector<Texture *> & textures) {
             this->vertices = vertices;
             this->indices = indices;
             this->textures = textures;
@@ -308,7 +310,7 @@ class Model {
 
         void processNode(const aiNode * node, const aiScene *scene);
         Mesh processMesh(const aiMesh *mesh, const aiScene *scene);
-        void addTextures(const aiMaterial * mat, const aiTextureType type, const std::string name, std::vector<Texture> & textures);
+        void addTextures(const aiMaterial * mat, const aiTextureType type, const std::string name, std::vector<Texture *> & textures);
         void correctTexturePath(char * path);
     public:
         static const std::string AMBIENT_TEXTURE;
@@ -331,6 +333,7 @@ class Model {
             return this->loaded;
         };
         void useMaterial(const Material & material);
+        void addModelInstance(const glm::mat4 modelMatrix);
         void useNormalsTexture(const bool flag);
 };
 

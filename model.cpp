@@ -34,7 +34,7 @@ void Model::processNode(const aiNode * node, const aiScene *scene) {
 Mesh Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
      std::vector<Vertex> vertices;
      std::vector<unsigned int> indices;
-     std::vector<Texture> textures;
+     std::vector<Texture * > textures;
 
      std::unique_ptr<aiColor4D> ambient(new aiColor4D());
      std::unique_ptr<aiColor4D> diffuse(new aiColor4D());
@@ -103,7 +103,7 @@ void Model::correctTexturePath(char * path) {
     }
 }
 
-void Model::addTextures(const aiMaterial * mat, const aiTextureType type, const std::string name, std::vector<Texture> & textures) {
+void Model::addTextures(const aiMaterial * mat, const aiTextureType type, const std::string name, std::vector<Texture *> & textures) {
     for(unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
         aiString str;
         mat->GetTexture(type, i, &str);
@@ -114,7 +114,7 @@ void Model::addTextures(const aiMaterial * mat, const aiTextureType type, const 
 
         std::map<std::string, std::unique_ptr<Texture> >::iterator val(Game::TEXTURES.find(fullyQualifiedName));
 
-        if (val != Game::TEXTURES.end()) textures.push_back(*val->second.get());
+        if (val != Game::TEXTURES.end()) textures.push_back(val->second.get());
         else {
             std::unique_ptr<Texture> texture(new Texture());
             texture->setType(name);
@@ -122,7 +122,7 @@ void Model::addTextures(const aiMaterial * mat, const aiTextureType type, const 
             texture->load();
 
             if (texture->isValid()) {
-                textures.push_back(*texture);
+                textures.push_back(texture.get());
                 Game::TEXTURES[str.C_Str()] = std::move(texture);
             }
         }
@@ -168,6 +168,10 @@ void Model::useMaterial(const Material & material) {
 
 void Model::useNormalsTexture(const bool flag) {
     for (auto & mesh : this->meshes) mesh.useNormalsTexture = flag;
+}
+
+void Model::addModelInstance(const glm::mat4 modelMatrix) {
+    for (auto & mesh : this->meshes) mesh.modelMatrices.push_back(modelMatrix);
 }
 
 const std::string Model::AMBIENT_TEXTURE = "texture_ambient";

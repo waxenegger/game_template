@@ -98,6 +98,8 @@ void Image::init() {
 
     this->mesh.init();
 
+    this->mesh.modelMatrices.push_back(this->calculateTransformationMatrix());
+
     this->initialized = true;
 }
 
@@ -106,7 +108,6 @@ void Image::render() {
 
     this->shader->use();
     if (this->shader->isBeingUsed()) {
-        this->shader->setMat4("model", this->calculateTransformationMatrix());
         this->shader->setMat4("view", Camera::instance()->getViewMatrix());
         this->shader->setMat4("projection", Camera::instance()->getPerspective());
 

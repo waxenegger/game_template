@@ -11,7 +11,8 @@ class Game {
         int width = DEFAULT_WIDTH;
         int height = DEFAULT_HEIGHT;
 
-        Uint32 frameStart = 0;
+        bool forceFixedFrameRate = true;
+        Uint32 frameDrawn = 0;
         Uint32 frameDuration = 0;
 
         bool wireframe = false;

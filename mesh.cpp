@@ -20,34 +20,35 @@ void Mesh::init() {
 
     int i=0;
     for (auto & texture : this->textures) {
-        if (!texture.isValid()) continue;
+        if (!texture->isValid()) continue;
 
-        SDL_Surface * textureSurface = texture.getTextureSurface();
+        SDL_Surface * textureSurface = texture->getTextureSurface();
 
         GLuint id = 0;
         glGenTextures(1, &id);
-        texture.setId(id);
+        // set global id
+        texture->setId(id);
 
         glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_2D, texture.getId());
+        glBindTexture(GL_TEXTURE_2D, texture->getId());
 
         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureSurface->w, textureSurface->h, 0, texture.getImageFormat(),
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureSurface->w, textureSurface->h, 0, texture->getImageFormat(),
                 GL_UNSIGNED_BYTE, textureSurface->pixels);
         glGenerateMipmap(GL_TEXTURE_2D);
         i++;
     }
 
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
+    glEnableVertexAttribArray(6);
+    glVertexAttribPointer(6, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
 
-    glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tangent));
+    glEnableVertexAttribArray(7);
+    glVertexAttribPointer(7, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tangent));
 
-    glEnableVertexAttribArray(4);
-    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, bitangent));
+    glEnableVertexAttribArray(8);
+    glVertexAttribPointer(8, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, bitangent));
 }
 
 void Mesh::render(Shader * shader) {
@@ -62,16 +63,39 @@ void Mesh::render(Shader * shader) {
         int i=0;
         for (auto & texture : this->textures) {
             glActiveTexture(GL_TEXTURE0 + i);
-            glBindTexture(GL_TEXTURE_2D, texture.getId());
+            glBindTexture(GL_TEXTURE_2D, texture->getId());
 
-            shader->setInt(texture.getType(), i);
-            shader->setInt("has_" + texture.getType(),
-                    texture.getType() == Model::TEXTURE_NORMALS && !this->useNormalsTexture ? 0 : 1);
+            shader->setInt(texture->getType(), i);
+            shader->setInt("has_" + texture->getType(),
+                    texture->getType() == Model::TEXTURE_NORMALS && !this->useNormalsTexture ? 0 : 1);
             i++;
         }
     }
 
-    glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
+    // instanced part - start
+    glGenBuffers(1, &this->MODEL_MATRIX);
+    glBindBuffer(GL_ARRAY_BUFFER, this->MODEL_MATRIX);
+    glBufferData(GL_ARRAY_BUFFER, this->modelMatrices.size() * sizeof(glm::mat4), &this->modelMatrices[0], GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+    glEnableVertexAttribArray(5);
+    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+
+    glVertexAttribDivisor(2, 1);
+    glVertexAttribDivisor(3, 1);
+    glVertexAttribDivisor(4, 1);
+    glVertexAttribDivisor(5, 1);
+    // instanced part - end
+
+
+    glDrawElementsInstanced(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0, this->modelMatrices.size());
+    //glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
+
     glBindVertexArray(0);
 }
 
@@ -81,8 +105,14 @@ void Mesh::cleanUp() {
     glDisableVertexAttribArray(2);
     glDisableVertexAttribArray(3);
     glDisableVertexAttribArray(4);
+    glDisableVertexAttribArray(5);
+    glDisableVertexAttribArray(6);
+    glDisableVertexAttribArray(7);
+    glDisableVertexAttribArray(8);
+
     glDeleteVertexArrays(1, &this->VAO);
     glDeleteBuffers(1, &this->VBO);
     glDeleteBuffers(1, &this->EBO);
-    for (auto & texture : this->textures) texture.cleanUp();
+    glDeleteBuffers(1, &this->MODEL_MATRIX);
+    for (auto texture : this->textures) texture->cleanUp();
 }
