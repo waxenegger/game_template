@@ -11,15 +11,30 @@ static const Uint32 FIXED_DRAW_INTERVAL = 17;
 static const int NUM_SHADERS = 2;
 static const std::string DEFAULT_VERTEX_SHADER =
         "#version 330 core\n"
-        "in vec3 position;\n"
-        "in vec3 normal;\n"
-        "in mat4 model;\n"
+        "layout (location = 0) in vec3 position;\n"
+        "layout (location = 1) in vec3 normal;\n"
+        "layout (location = 2) in mat4 model;\n"
+        "layout (location = 6) in vec4 emissiveMaterial;\n"
+        "layout (location = 7) in vec4 ambientMaterial;\n"
+        "layout (location = 8) in vec4 diffuseMaterial;\n"
+        "layout (location = 9) in vec4 specularMaterial;\n"
+        "layout (location = 10) in float shininessMaterial;\n"
         "uniform mat4 view;\n"
         "uniform mat4 projection;\n"
         "out vec3 norm;\n"
         "out vec3 pos;\n"
+        "out vec4 emissiveColor;\n"
+        "out vec4 ambientColor;\n"
+        "out vec4 diffuseColor;\n"
+        "out vec4 specularColor;\n"
+        "out float shininess;\n"
         "void main() {\n"
         "    pos = vec3(view * model * vec4(position, 1.0));\n"
+        "    emissiveColor = emissiveMaterial;\n"
+        "    ambientColor = ambientMaterial;\n"
+        "    diffuseColor = diffuseMaterial;\n"
+        "    specularColor = specularMaterial;\n"
+        "    shininess = shininessMaterial;\n"
         "    gl_Position = projection * vec4(pos, 1.0);\n"
         "    norm = normalize(mat3(transpose(inverse(model))) * normal);\n"
         "}";
@@ -27,27 +42,26 @@ static const std::string DEFAULT_FRAGMENT_SHADER =
         "#version 330 core\n"
         "in vec3 norm;\n"
         "in vec3 pos;\n"
-        "uniform vec4 ambientMaterial;\n"
-        "uniform vec4 diffuseMaterial;\n"
-        "uniform vec4 specularMaterial;\n"
-        "uniform vec4 emissiveMaterial;\n"
-        "uniform float shininess;\n"
+        "in vec4 emissiveColor;\n"
+        "in vec4 ambientColor;\n"
+        "in vec4 diffuseColor;\n"
+        "in vec4 specularColor;\n"
+        "in float shininess;\n"
         "uniform vec3 ambientLight;\n"
         "uniform vec3 sunDirection;\n"
         "uniform vec3 sunLightColor;\n"
         "uniform vec3 eyePosition;\n"
         "out vec4 fragColor;\n"
         "void main() {\n"
-        "    vec4 ambience = vec4(ambientLight,1) * ambientMaterial;\n"
-        "    vec4 emissive = emissiveMaterial;\n"
+        "    vec4 ambience = vec4(ambientLight,1) * ambientColor;\n"
         "    vec3 lightDir = normalize(sunDirection - pos);\n"
         "    float diff = max(dot(norm, lightDir), 0.0);\n"
-        "    vec4 diffuse = vec4(diff * sunLightColor, 1.0) * diffuseMaterial;\n"
+        "    vec4 diffuse = vec4(diff * sunLightColor, 1.0) * diffuseColor;\n"
         "    vec3 eyeDir = normalize(eyePosition - pos);\n"
         "    vec3 halfDir = normalize(lightDir + eyeDir);\n"
         "    float spec = pow(max(dot(norm, halfDir), 0.0), shininess);\n"
-        "    vec4 specular = vec4(spec * sunLightColor, 1) * specularMaterial;\n"
-        "    fragColor = emissive + ambience + diffuse + specular;\n"
+        "    vec4 specular = vec4(spec * sunLightColor, 1) * specularColor;\n"
+        "    fragColor = emissiveColor + ambience + diffuse + specular;\n"
         "}";
 
 
@@ -69,10 +83,6 @@ public:
 
     glm::vec3 tangent;
     glm::vec3 bitangent;
-
-    glm::vec3 colorAmbient;
-    glm::vec3 colorDiffuse;
-    glm::vec3 colorSpecular;
 
     Vertex(glm::vec3 position) {
         this->position = position;
@@ -199,8 +209,8 @@ class Mesh {
         std::vector<unsigned int> indices;
         std::vector<Texture * > textures;
         std::vector<glm::mat4> modelMatrices;
-        Material material;
-        GLuint VAO = 0, VBO = 0, EBO = 0, MODEL_MATRIX = 0;
+        std::vector<Material> materials;
+        GLuint VAO = 0, VBO = 0, EBO = 0, MODEL_MATRIX = 0, MATERIALS = 0;
         bool useNormalsTexture = true;
 
         Mesh() {};
@@ -332,8 +342,8 @@ class Model {
         bool hasBeenLoaded() {
             return this->loaded;
         };
-        void useMaterial(const Material & material);
-        void addModelInstance(const glm::mat4 modelMatrix);
+        void addMaterialInstance(const Material & material);
+        void addModelInstance(const glm::mat4 & modelMatrix);
         void useNormalsTexture(const bool flag);
 };
 
@@ -438,7 +448,7 @@ class Entity : public Renderable {
 
             Material newColorMaterial;
             newColorMaterial.diffuseColor = glm::vec4(red, green, blue, alpha);
-            this->model->useMaterial(newColorMaterial);
+            this->model->addMaterialInstance(newColorMaterial);
         }
 };
 

@@ -50,7 +50,9 @@ Terrain::Terrain(const std::string & dir) {
     }
 
     // set uniform color for now
-    this->mesh.material.diffuseColor = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+    Material material;
+    material.diffuseColor = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+    this->mesh.materials.push_back(material);
     this->mesh.modelMatrices.push_back(glm::mat4(1.0f));
 
     this->initialized = true;

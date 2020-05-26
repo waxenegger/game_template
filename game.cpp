@@ -240,9 +240,11 @@ void Game::createTestModels() {
             ent->setRotation(0, -45, 0);
             ent->setScaleFactor(2.0f);
 
-            for (int j=0;j<100;j++) {
+            for (int j=0;j<50;j++) {
                 glm::vec3 pos = ent->getPosition();
                 ent->setPosition(pos.x + 10 , pos.y, pos.z);
+                ent->setColor(0.02f * j, 0.02f * j, 0.02f * j, 1.0f);
+                //ent->setColor(0.0, 0.0f, 1.0f, 1.0f);
                 model->addModelInstance(ent->calculateTransformationMatrix());
             }
 

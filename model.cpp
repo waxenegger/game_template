@@ -36,13 +36,15 @@ Mesh Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
      std::vector<unsigned int> indices;
      std::vector<Texture * > textures;
 
-     std::unique_ptr<aiColor4D> ambient(new aiColor4D());
-     std::unique_ptr<aiColor4D> diffuse(new aiColor4D());
-     std::unique_ptr<aiColor4D> specular(new aiColor4D());
-
      if (scene->HasMaterials()) {
          const aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
+         std::unique_ptr<aiColor4D> emissive(new aiColor4D());
+         std::unique_ptr<aiColor4D> ambient(new aiColor4D());
+         std::unique_ptr<aiColor4D> diffuse(new aiColor4D());
+         std::unique_ptr<aiColor4D> specular(new aiColor4D());
+
+         aiGetMaterialColor(material, AI_MATKEY_COLOR_EMISSIVE, emissive.get());
          aiGetMaterialColor(material, AI_MATKEY_COLOR_AMBIENT, ambient.get());
          aiGetMaterialColor(material, AI_MATKEY_COLOR_DIFFUSE, diffuse.get());
          aiGetMaterialColor(material, AI_MATKEY_COLOR_SPECULAR, specular.get());
@@ -51,6 +53,15 @@ Mesh Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
          this->addTextures(material, aiTextureType_DIFFUSE, Model::DIFFUSE_TEXTURE, textures);
          this->addTextures(material, aiTextureType_SPECULAR, Model::SPECULAR_TEXTURE, textures);
          this->addTextures(material, aiTextureType_HEIGHT, Model::TEXTURE_NORMALS, textures);
+
+         Material mat;
+         if (emissive != nullptr) mat.emissiveColor = glm::vec4(emissive->r, emissive->g, emissive->b, 1.0f);
+         if (ambient != nullptr)  mat.ambientColor  = glm::vec4(ambient->r, ambient->g, ambient->b, 1.0f);
+         if (diffuse != nullptr)  mat.diffuseColor  = glm::vec4(diffuse->r, diffuse->g, diffuse->b, 1.0f);
+         if (specular != nullptr) mat.specularColor  = glm::vec4(specular->r, specular->g, specular->b, 1.0f);
+
+         // TODO: do this smarter...
+         //this->addMaterialInstance(mat);
      }
 
      if (mesh->mNumVertices > 0) vertices.reserve(mesh->mNumVertices);
@@ -71,10 +82,6 @@ Mesh Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
              if (mesh->mBitangents->Length() == mesh->mNumVertices)
                  vertex.bitangent = glm::vec3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
          }
-
-         if (ambient != nullptr) vertex.colorAmbient = glm::vec3(ambient->r, ambient->g, ambient->b);
-         if (diffuse != nullptr) vertex.colorDiffuse = glm::vec3(diffuse->r, diffuse->g, diffuse->b);
-         if (specular != nullptr) vertex.colorSpecular = glm::vec3(specular->r, specular->g, specular->b);
 
          vertices.push_back(vertex);
      }
@@ -162,15 +169,15 @@ void Model::cleanUp() {
     this->loaded = false;
 }
 
-void Model::useMaterial(const Material & material) {
-    for (auto & mesh : this->meshes) mesh.material = material;
+void Model::addMaterialInstance(const Material & material) {
+    for (auto & mesh : this->meshes) mesh.materials.push_back(material);
 }
 
 void Model::useNormalsTexture(const bool flag) {
     for (auto & mesh : this->meshes) mesh.useNormalsTexture = flag;
 }
 
-void Model::addModelInstance(const glm::mat4 modelMatrix) {
+void Model::addModelInstance(const glm::mat4 & modelMatrix) {
     for (auto & mesh : this->meshes) mesh.modelMatrices.push_back(modelMatrix);
 }
 

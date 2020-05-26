@@ -41,25 +41,20 @@ void Mesh::init() {
         i++;
     }
 
-    glEnableVertexAttribArray(6);
-    glVertexAttribPointer(6, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
+    glEnableVertexAttribArray(11);
+    glVertexAttribPointer(11, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
 
-    glEnableVertexAttribArray(7);
-    glVertexAttribPointer(7, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tangent));
+    glEnableVertexAttribArray(12);
+    glVertexAttribPointer(12, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tangent));
 
-    glEnableVertexAttribArray(8);
-    glVertexAttribPointer(8, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, bitangent));
+    glEnableVertexAttribArray(13);
+    glVertexAttribPointer(13, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, bitangent));
 }
 
 void Mesh::render(Shader * shader) {
     glBindVertexArray(this->VAO);
 
     if (shader != nullptr && shader->isBeingUsed()) {
-        shader->setVec4("ambientMaterial", this->material.ambientColor);
-        shader->setVec4("diffuseMaterial", this->material.diffuseColor);
-        shader->setVec4("specularMaterial", this->material.specularColor);
-        shader->setFloat("shininess", this->material.shininess);
-
         int i=0;
         for (auto & texture : this->textures) {
             glActiveTexture(GL_TEXTURE0 + i);
@@ -90,6 +85,32 @@ void Mesh::render(Shader * shader) {
     glVertexAttribDivisor(3, 1);
     glVertexAttribDivisor(4, 1);
     glVertexAttribDivisor(5, 1);
+
+
+    glGenBuffers(1, &this->MATERIALS);
+    glBindBuffer(GL_ARRAY_BUFFER, this->MATERIALS);
+    glBufferData(GL_ARRAY_BUFFER, this->materials.size() * sizeof(Material), &this->materials[0], GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(6);
+    glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(Material), (void*)offsetof(Material, emissiveColor));
+
+    glEnableVertexAttribArray(7);
+    glVertexAttribPointer(7, 3, GL_FLOAT, GL_FALSE, sizeof(Material), (void*)offsetof(Material, ambientColor));
+
+    glEnableVertexAttribArray(8);
+    glVertexAttribPointer(8, 3, GL_FLOAT, GL_FALSE, sizeof(Material), (void*)offsetof(Material, diffuseColor));
+
+    glEnableVertexAttribArray(9);
+    glVertexAttribPointer(9, 3, GL_FLOAT, GL_FALSE, sizeof(Material), (void*)offsetof(Material, specularColor));
+
+    glEnableVertexAttribArray(10);
+    glVertexAttribPointer(10, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Material, shininess));
+
+    glVertexAttribDivisor(6, 1);
+    glVertexAttribDivisor(7, 1);
+    glVertexAttribDivisor(8, 1);
+    glVertexAttribDivisor(9, 1);
+    glVertexAttribDivisor(10, 1);
     // instanced part - end
 
 
@@ -100,19 +121,12 @@ void Mesh::render(Shader * shader) {
 }
 
 void Mesh::cleanUp() {
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
-    glDisableVertexAttribArray(2);
-    glDisableVertexAttribArray(3);
-    glDisableVertexAttribArray(4);
-    glDisableVertexAttribArray(5);
-    glDisableVertexAttribArray(6);
-    glDisableVertexAttribArray(7);
-    glDisableVertexAttribArray(8);
+    for (int i=0;i<11;i++) glDisableVertexAttribArray(i);
 
     glDeleteVertexArrays(1, &this->VAO);
     glDeleteBuffers(1, &this->VBO);
     glDeleteBuffers(1, &this->EBO);
     glDeleteBuffers(1, &this->MODEL_MATRIX);
+    glDeleteBuffers(1, &this->MATERIALS);
     for (auto texture : this->textures) texture->cleanUp();
 }

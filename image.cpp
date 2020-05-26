@@ -98,6 +98,8 @@ void Image::init() {
 
     this->mesh.init();
 
+    Material material;
+    this->mesh.materials.push_back(material);
     this->mesh.modelMatrices.push_back(this->calculateTransformationMatrix());
 
     this->initialized = true;
@@ -115,11 +117,6 @@ void Image::render() {
         this->shader->setVec3("sunDirection", World::instance()->getSunDirection());
         this->shader->setVec3("sunLightColor", World::instance()->getSunLightColor());
         this->shader->setVec3("eyePosition", Camera::instance()->getPosition());
-
-        this->shader->setVec4("ambientMaterial", this->mesh.material.ambientColor);
-        this->shader->setVec4("diffuseMaterial", this->mesh.material.diffuseColor);
-        this->shader->setVec4("specularMaterial", this->mesh.material.specularColor);
-        this->shader->setFloat("shininess", this->mesh.material.shininess);
 
         this->shader->setInt("has_" + Model::AMBIENT_TEXTURE, 0);
         this->shader->setInt("has_" + Model::SPECULAR_TEXTURE, 0);
