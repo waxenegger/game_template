@@ -30,15 +30,15 @@ Terrain::Terrain(const std::string & dir) {
             this->mesh.indices.push_back(vertexIndexBelow);
 
             this->mesh.indices.push_back(vertexIndexToRight);
-            this->mesh.indices.push_back(vertexIndexBelow);
             this->mesh.indices.push_back(vertexIndexToRightBelow);
+            this->mesh.indices.push_back(vertexIndexBelow);
 
             const int vertexIndexToLeft = j == 0 ? 1 : vertexIndex -1;
             const int vertexIndexUp = i == 0 ? 1 : (i-1) * numberOfVertices + j;
 
             const glm::vec3 norm = glm::vec3(
                     this->mesh.vertices[vertexIndexToLeft].position.y -
-                    this->mesh.vertices[vertexIndexToLeft].position.y,
+                    this->mesh.vertices[vertexIndexToRight].position.y,
                     2.0f,
                     this->mesh.vertices[vertexIndexBelow].position.y -
                     this->mesh.vertices[vertexIndexUp].position.y);
