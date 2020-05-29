@@ -29,13 +29,13 @@ static const std::string DEFAULT_VERTEX_SHADER =
         "out vec4 specularColor;\n"
         "out float shininess;\n"
         "void main() {\n"
-        "    pos = vec3(view * model * vec4(position, 1.0));\n"
+        "    pos = vec3(model * vec4(position, 1.0));\n"
         "    emissiveColor = emissiveMaterial;\n"
         "    ambientColor = ambientMaterial;\n"
         "    diffuseColor = diffuseMaterial;\n"
         "    specularColor = specularMaterial;\n"
         "    shininess = shininessMaterial;\n"
-        "    gl_Position = projection * vec4(pos, 1.0);\n"
+        "    gl_Position = projection * view * vec4(pos, 1.0);\n"
         "    norm = normalize(mat3(transpose(inverse(model))) * normal);\n"
         "}";
 static const std::string DEFAULT_FRAGMENT_SHADER =
@@ -67,10 +67,10 @@ static const std::string DEFAULT_FRAGMENT_SHADER =
 
 class Material {
     public:
-        glm::vec4 ambientColor = glm::vec4(0.3f, 0.3f, 0.3f, 1.0f);
+        glm::vec4 ambientColor = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f);
         glm::vec4 emissiveColor = glm::vec4(0.1f, 0.1f, 0.1f,1.0f);
-        glm::vec4 diffuseColor = glm::vec4(1.0f);
-        glm::vec4 specularColor = glm::vec4(0.1f,0.1f,0.1f,1.0f);
+        glm::vec4 diffuseColor = glm::vec4(0.5f, 0.5f,0.5f, 1.0f);
+        glm::vec4 specularColor = glm::vec4(0.2f,0.2f,0.2f,1.0f);
         float shininess = 1.0f;
         Material() {};
 };
@@ -258,6 +258,9 @@ class Renderable {
             this->position.x = x;
             this->position.y = y;
             this->position.z = z;
+        }
+        void setPosition(const glm::vec3 & pos) {
+            this->position = pos;
         }
         void setRotation(const int x = 0, const int y = 0, const int z = 0) {
             this->rotation.x = glm::radians(static_cast<float>(x));
