@@ -7,12 +7,12 @@ World::World() {
 
 void World::setAmbientLightFactor(const float ambientLightFactor) {
     if (ambientLightFactor > 0.0f && ambientLightFactor <= 1.0f)
-        this->ambientLight = glm::vec3(1.0f) * ambientLightFactor;
+        this->ambientLight = DEFAULT_AMBIENT_LIGHT_COLOR * ambientLightFactor;
 };
 
 void World::setSunLightStrength(const float sunLightStrength) {
     if (sunLightStrength > 0.0f && sunLightStrength <= 1.0f)
-        this->sunLightColor = glm::vec3(1.0f) * sunLightStrength;
+        this->sunLightColor = DEFAULT_SUNLIGHT_COLOR * sunLightStrength;
 };
 
 glm::vec3 World::getSunLightColor() {
