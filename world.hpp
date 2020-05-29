@@ -8,11 +8,11 @@
         static World * singleton;
         const float DEFAULT_AMBIENT_LIGHT_FACTOR = 0.05f;
         const float DEFAULT_SUNLIGHT_STRENGTH = 0.75f;
-        const glm::vec3 DEFAULT_SUNLIGHT_COLOR = glm::vec3(0.95f, 0.95f, 0.9f);
+        const glm::vec3 DEFAULT_SUNLIGHT_COLOR = glm::vec3(1.0f);
         const glm::vec3 DEFAULT_AMBIENT_LIGHT_COLOR = glm::vec3(1.0f);
 
         glm::vec3 ambientLight = DEFAULT_AMBIENT_LIGHT_COLOR;
-        glm::vec3 sunDirection = glm::vec3(250.0f, 130.0f, -15.0f);
+        glm::vec3 sunDirection = glm::vec3(20.0f, 30.0f, -15.0f);
         glm::vec3 sunLightColor = DEFAULT_SUNLIGHT_COLOR;
 
         World();

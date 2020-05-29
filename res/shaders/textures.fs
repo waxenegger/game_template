@@ -35,6 +35,8 @@ void main() {
 		normals = normalize(normals * 2.0 - 1.0);
 	}
 
+	vec4 emission = emissiveColor * vec4(ambientLight, 1.0);
+
 	vec4 ambience = vec4(ambientLight,1) * ambientColor;
 	if (has_texture_ambient) {
 		ambience *= texture(texture_ambient, uvCoords);
@@ -57,5 +59,5 @@ void main() {
 		specular *= texture(texture_specular, uvCoords);
 	}
 
-	fragColor = emissiveColor + ambience + diffuse + specular;
+	fragColor = emission + ambience + diffuse + specular;
 }

@@ -228,43 +228,65 @@ Game::~Game() {
 
 void Game::createTestModels() {
 
-    std::shared_ptr<Model> model(this->factory->createModel("/res/models/teapot.obj"));
-    if (model->hasBeenLoaded()) {
-        model->useNormalsTexture(false);
-        model->init();
+    //glEnable(GL_CULL_FACE);
 
-        for (int x = 0;x< 1; x++) {
-            Entity * ent = new Entity(model);
-            ent->useShader(new Shader(this->root + "/res/shaders/textures"));
-            ent->setPosition(4.0f, 0.0f, -15.0f);
-            ent->setRotation(0, -45, 0);
-            ent->setScaleFactor(2.0f);
+    std::shared_ptr<Model> sunModel(this->factory->createModel("/res/models/sun.obj"));
+    if (sunModel->hasBeenLoaded()) {
+        sunModel->useNormalsTexture(false);
+        sunModel->init();
+        Entity * sun = new Entity(sunModel);
+        sun->setColor(1.0f, 1.0f, 0.0f, 1.0f);
+        sun->setPosition(World::instance()->getSunDirection());
+        sun->setScaleFactor(1.0f);
+        sunModel->addModelInstance(sun->calculateTransformationMatrix());
 
-            for (int j=0;j<50;j++) {
-                glm::vec3 pos = ent->getPosition();
-                ent->setPosition(pos.x + 10 , pos.y, pos.z);
-                ent->setColor(0.02f * j, 0.02f * j, 0.02f * j, 1.0f);
-                //ent->setColor(0.0, 0.0f, 1.0f, 1.0f);
-                model->addModelInstance(ent->calculateTransformationMatrix());
-            }
+        this->scene.push_back(std::unique_ptr<Renderable>(std::move(sun)));
+    }
 
-            ent->setPosition(4.0f, 0.0f, -15.0f);
+    std::shared_ptr<Model> teapotModel(this->factory->createModel("/res/models/teapot.obj"));
+    if (teapotModel->hasBeenLoaded()) {
+        teapotModel->useNormalsTexture(true);
+        teapotModel->init();
 
-            this->scene.push_back(std::unique_ptr<Renderable>(std::move(ent)));
+        Entity * teapot = new Entity(teapotModel);
+        teapot->setPosition(4.0f, 0.0f, -15.0f);
+        teapot->setRotation(0, -45, 0);
+        teapot->setScaleFactor(2.0f);
+
+        for (int j=0;j<50;j++) {
+            glm::vec3 pos = teapot->getPosition();
+            teapot->setPosition(pos.x + 10 , pos.y, pos.z);
+            teapot->setColor(0.0f, 0.0f, 1.0f, 1.0);
+            teapotModel->addModelInstance(teapot->calculateTransformationMatrix());
         }
+
+        this->scene.push_back(std::unique_ptr<Renderable>(std::move(teapot)));
     }
 
-    /*
-    for (int x = 0;x < 1; x++) {
-        std::unique_ptr<Renderable> img(this->factory->createImage("/res/models/rock.png"));
-        img->setPosition(4.0f + 10 * x, 0.0f, -15.0f);
-        img->setRotation(0, -45, 0);
-        img->setScaleFactor(2.0f);
-        this->scene.push_back(std::move(img));
+    std::shared_ptr<Model> nanosuitModel(this->factory->createModel("/res/models/nanosuit.obj"));
+    if (nanosuitModel->hasBeenLoaded()) {
+        nanosuitModel->useNormalsTexture(false);
+        nanosuitModel->init();
+
+        Entity * nanosuit = new Entity(nanosuitModel);
+        nanosuit->useShader(new Shader(this->root + "/res/shaders/textures"));
+        nanosuit->setColor(1.0f,1.0f,1.0f,1.0f);
+        nanosuit->setPosition(4.0f, 5.0f, -25.0f);
+        nanosuit->setRotation(0, -45, 0);
+        nanosuit->setScaleFactor(0.15f);
+        nanosuitModel->addModelInstance(nanosuit->calculateTransformationMatrix());
+
+        this->scene.push_back(std::unique_ptr<Renderable>(std::move(nanosuit)));
     }
-    */
+
+
+    std::unique_ptr<Renderable> rock(this->factory->createImage("/res/models/rock.png"));
+    rock->setPosition(14.0f, 0.0f, -15.0f);
+    rock->setRotation(0, -45, 0);
+    rock->setScaleFactor(2.0f);
+    this->scene.push_back(std::move(rock));
 }
-std::map<std::string, std::unique_ptr<Texture> > Game::TEXTURES;
+std::map<std::string, std::shared_ptr<Texture>> Game::TEXTURES;
 
 
 int main(int argc, char **argv) {

@@ -4,14 +4,18 @@
 Image * Image::fromFile(std::string file) {
     Image * img = new Image();
 
-    std::map<std::string, std::unique_ptr<Texture> >::iterator val(Game::TEXTURES.find(file));
+    std::map<std::string, std::shared_ptr<Texture>>::iterator val(Game::TEXTURES.find(file));
 
     if (val == Game::TEXTURES.end()) {
-        std::unique_ptr<Texture> texture(new Texture());
+        std::shared_ptr<Texture> texture(new Texture());
         texture->setType(Model::DIFFUSE_TEXTURE);
         texture->setPath(file);
         texture->load();
         if (texture->isValid()) Game::TEXTURES[file] = std::move(texture);
+        else {
+            texture.reset();
+            return img;
+        }
     }
 
     if (Game::TEXTURES[file]->isValid()) {
@@ -73,13 +77,13 @@ void Image::init() {
     four.normal = glm::vec3(0.0f, 0.0f, zDirNormal);
     this->mesh.vertices.push_back(four);
 
-    this->mesh.indices.push_back(0);
+    this->mesh.indices.push_back(2);
     this->mesh.indices.push_back(3);
-    this->mesh.indices.push_back(2);
-
     this->mesh.indices.push_back(0);
-    this->mesh.indices.push_back(2);
+
     this->mesh.indices.push_back(1);
+    this->mesh.indices.push_back(2);
+    this->mesh.indices.push_back(0);
 
     glGenTextures(1, &this->textureId);
 

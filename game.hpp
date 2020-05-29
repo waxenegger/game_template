@@ -44,7 +44,7 @@ class Game {
         virtual ~Game();
         void createTestModels();
 
-        static std::map<std::string, std::unique_ptr<Texture> > TEXTURES;
+        static std::map<std::string, std::shared_ptr<Texture>> TEXTURES;
 };
 
 #endif

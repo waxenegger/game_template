@@ -53,6 +53,7 @@ static const std::string DEFAULT_FRAGMENT_SHADER =
         "uniform vec3 eyePosition;\n"
         "out vec4 fragColor;\n"
         "void main() {\n"
+        "    vec4 emission = emissiveColor * vec4(ambientLight, 1.0);\n"
         "    vec4 ambience = vec4(ambientLight,1) * ambientColor;\n"
         "    vec3 lightDir = normalize(sunDirection - pos);\n"
         "    float diff = max(dot(norm, lightDir), 0.0);\n"
@@ -61,16 +62,16 @@ static const std::string DEFAULT_FRAGMENT_SHADER =
         "    vec3 halfDir = normalize(lightDir + eyeDir);\n"
         "    float spec = pow(max(dot(norm, halfDir), 0.0), shininess);\n"
         "    vec4 specular = vec4(spec * sunLightColor, 1) * specularColor;\n"
-        "    fragColor = emissiveColor + ambience + diffuse + specular;\n"
+        "    fragColor = emission + ambience + diffuse + specular;\n"
         "}";
 
 
 class Material {
     public:
-        glm::vec4 ambientColor = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f);
+        glm::vec4 ambientColor = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
         glm::vec4 emissiveColor = glm::vec4(0.1f, 0.1f, 0.1f,1.0f);
-        glm::vec4 diffuseColor = glm::vec4(0.5f, 0.5f,0.5f, 1.0f);
-        glm::vec4 specularColor = glm::vec4(0.2f,0.2f,0.2f,1.0f);
+        glm::vec4 diffuseColor = glm::vec4(1.0f, 1.0f,1.0f, 1.0f);
+        glm::vec4 specularColor = glm::vec4(0.4f,0.4f,0.4f,1.0f);
         float shininess = 1.0f;
         Material() {};
 };
@@ -207,15 +208,14 @@ class Mesh {
     public:
         std::vector<Vertex> vertices;
         std::vector<unsigned int> indices;
-        std::vector<Texture * > textures;
+        std::vector<std::shared_ptr<Texture>> textures;
         std::vector<glm::mat4> modelMatrices;
         std::vector<Material> materials;
         GLuint VAO = 0, VBO = 0, EBO = 0, MODEL_MATRIX = 0, MATERIALS = 0;
         bool useNormalsTexture = true;
 
         Mesh() {};
-
-        Mesh(std::vector<Vertex> & vertices, std::vector<unsigned int> & indices, std::vector<Texture *> & textures) {
+        Mesh(std::vector<Vertex> & vertices, std::vector<unsigned int> & indices, std::vector<std::shared_ptr<Texture>> & textures) {
             this->vertices = vertices;
             this->indices = indices;
             this->textures = textures;
@@ -323,7 +323,7 @@ class Model {
 
         void processNode(const aiNode * node, const aiScene *scene);
         Mesh processMesh(const aiMesh *mesh, const aiScene *scene);
-        void addTextures(const aiMaterial * mat, const aiTextureType type, const std::string name, std::vector<Texture *> & textures);
+        void addTextures(const aiMaterial * mat, const aiTextureType type, const std::string name, std::vector<std::shared_ptr<Texture>> & textures);
         void correctTexturePath(char * path);
     public:
         static const std::string AMBIENT_TEXTURE;

@@ -34,7 +34,7 @@ void Model::processNode(const aiNode * node, const aiScene *scene) {
 Mesh Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
      std::vector<Vertex> vertices;
      std::vector<unsigned int> indices;
-     std::vector<Texture * > textures;
+     std::vector<std::shared_ptr<Texture>> textures;
 
      if (scene->HasMaterials()) {
          const aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
@@ -110,7 +110,7 @@ void Model::correctTexturePath(char * path) {
     }
 }
 
-void Model::addTextures(const aiMaterial * mat, const aiTextureType type, const std::string name, std::vector<Texture *> & textures) {
+void Model::addTextures(const aiMaterial * mat, const aiTextureType type, const std::string name, std::vector<std::shared_ptr<Texture>> & textures) {
     for(unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
         aiString str;
         mat->GetTexture(type, i, &str);
@@ -119,19 +119,19 @@ void Model::addTextures(const aiMaterial * mat, const aiTextureType type, const 
 
         const std::string fullyQualifiedName(this->dir + "/res/models/" + std::string(str.C_Str(), str.length));
 
-        std::map<std::string, std::unique_ptr<Texture> >::iterator val(Game::TEXTURES.find(fullyQualifiedName));
+        std::map<std::string, std::shared_ptr<Texture>>::iterator val(Game::TEXTURES.find(fullyQualifiedName));
 
-        if (val != Game::TEXTURES.end()) textures.push_back(val->second.get());
+        if (val != Game::TEXTURES.end()) textures.push_back(val->second);
         else {
-            std::unique_ptr<Texture> texture(new Texture());
+            std::shared_ptr<Texture> texture(new Texture());
             texture->setType(name);
             texture->setPath(fullyQualifiedName);
             texture->load();
 
             if (texture->isValid()) {
-                textures.push_back(texture.get());
+                textures.push_back(texture);
                 Game::TEXTURES[str.C_Str()] = std::move(texture);
-            }
+            } else texture.reset();
         }
     }
 }
