@@ -31,9 +31,9 @@ out vec4 specularColor;
 out float shininess;
 
 void main() {
-	pos = vec3(view * model * vec4(position, 1.0));
+	pos = vec3(model * vec4(position, 1.0));
 
-    gl_Position = projection * vec4(pos, 1.0);
+    gl_Position = projection * view * vec4(pos, 1.0);
 
  	norm = normalize(mat3(transpose(inverse(model))) * normal);
 
