@@ -3,6 +3,7 @@
 
 Image * Image::fromFile(std::string file) {
     Image * img = new Image();
+    img->id = file;
 
     std::map<std::string, std::shared_ptr<Texture>>::iterator val(Game::TEXTURES.find(file));
 
@@ -57,33 +58,35 @@ void Image::init() {
     const float w = 10.0f;
     const float h = 10.0f;
 
+    Mesh m;
+
     Vertex one(glm::vec3(0.0f, h, 0.0f));
     one.uv = glm::vec2(1.0f, 0.0f);
     one.normal = glm::vec3(0.0f, h, zDirNormal);
-    this->mesh.vertices.push_back(one);
+    m.vertices.push_back(one);
 
     Vertex two(glm::vec3(w, h, 0.0f));
     two.uv = glm::vec2(0.0f, 0.0f);
     two.normal = glm::vec3(w, h, zDirNormal);
-    this->mesh.vertices.push_back(two);
+    m.vertices.push_back(two);
 
     Vertex three(glm::vec3(w, 0.0f, 0.0f));
     three.uv = glm::vec2(0.0f, 1.0f);
     three.normal = glm::vec3(w, 0.0f, zDirNormal);
-    this->mesh.vertices.push_back(three);
+    m.vertices.push_back(three);
 
     Vertex four(glm::vec3(0.0f, 0.0f, 0.0f));
     four.uv = glm::vec2(1.0f, 1.0f);
     four.normal = glm::vec3(0.0f, 0.0f, zDirNormal);
-    this->mesh.vertices.push_back(four);
+    m.vertices.push_back(four);
 
-    this->mesh.indices.push_back(2);
-    this->mesh.indices.push_back(3);
-    this->mesh.indices.push_back(0);
+    m.indices.push_back(2);
+    m.indices.push_back(3);
+    m.indices.push_back(0);
 
-    this->mesh.indices.push_back(1);
-    this->mesh.indices.push_back(2);
-    this->mesh.indices.push_back(0);
+    m.indices.push_back(1);
+    m.indices.push_back(2);
+    m.indices.push_back(0);
 
     glGenTextures(1, &this->textureId);
 
@@ -100,11 +103,9 @@ void Image::init() {
             GL_UNSIGNED_BYTE, this->image->pixels);
     glGenerateMipmap(GL_TEXTURE_2D);
 
-    this->mesh.init();
+    m.init();
 
-    Material material;
-    this->mesh.materials.push_back(material);
-    this->mesh.modelMatrices.push_back(this->calculateTransformationMatrix());
+    this->mesh.push_back(m);
 
     this->initialized = true;
 }
@@ -131,7 +132,7 @@ void Image::render() {
         this->shader->setInt("has_" + Model::DIFFUSE_TEXTURE, 1);
         this->shader->setInt(Model::DIFFUSE_TEXTURE, 0);
 
-        this->mesh.render(this->shader);
+        if (this->mesh.size() != 0) this->mesh[0].render(this->shader);
 
         this->shader->stopUse();
     }
@@ -139,5 +140,5 @@ void Image::render() {
 
 void Image::cleanUp() {
     glDeleteTextures(1, &this->textureId);
-    this->mesh.cleanUp();
+    if (this->mesh.size() != 0) this->mesh[0].cleanUp();
 }

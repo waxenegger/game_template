@@ -59,9 +59,6 @@ Mesh Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
          if (ambient != nullptr)  mat.ambientColor  = glm::vec4(ambient->r, ambient->g, ambient->b, 1.0f);
          if (diffuse != nullptr)  mat.diffuseColor  = glm::vec4(diffuse->r, diffuse->g, diffuse->b, 1.0f);
          if (specular != nullptr) mat.specularColor  = glm::vec4(specular->r, specular->g, specular->b, 1.0f);
-
-         // TODO: do this smarter...
-         //this->addMaterialInstance(mat);
      }
 
      if (mesh->mNumVertices > 0) vertices.reserve(mesh->mNumVertices);
@@ -169,16 +166,8 @@ void Model::cleanUp() {
     this->loaded = false;
 }
 
-void Model::addMaterialInstance(const Material & material) {
-    for (auto & mesh : this->meshes) mesh.materials.push_back(material);
-}
-
 void Model::useNormalsTexture(const bool flag) {
     for (auto & mesh : this->meshes) mesh.useNormalsTexture = flag;
-}
-
-void Model::addModelInstance(const glm::mat4 & modelMatrix) {
-    for (auto & mesh : this->meshes) mesh.modelMatrices.push_back(modelMatrix);
 }
 
 const std::string Model::AMBIENT_TEXTURE = "texture_ambient";

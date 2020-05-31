@@ -71,6 +71,9 @@ bool Game::init() {
 
     TTF_Init();
 
+    this->state = new GameState(this->root);
+    this->state->init();
+
     return true;
 }
 
@@ -82,11 +85,6 @@ void Game::run() {
     SDL_StartTextInput();
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
-    if (this->terrain == nullptr) {
-        this->terrain = new Terrain(this->root);
-        this->terrain->init();
-
-    }
     this->createTestModels();
 
     while (!quit) {
@@ -164,9 +162,6 @@ void Game::run() {
         this->render();
     }
 
-    if (this->terrain != nullptr) this->terrain->cleanUp();
-    for (auto & entity : this->scene) entity->cleanUp();
-
     SDL_StopTextInput();
 }
 
@@ -187,9 +182,7 @@ void Game::render() {
         const Uint32 frameStart = SDL_GetTicks();
         this->clearScreen(0, 0, 0, 1);
 
-        if (this->terrain != nullptr) this->terrain->render();
-
-        for (auto & entity : this->scene) entity->render();
+        this->state->render();
 
         SDL_GL_SwapWindow(window);
 
@@ -219,10 +212,10 @@ float Game::getLastFrameDuration() const {
 }
 
 Game::~Game() {
-    if (this->terrain != nullptr) delete this->terrain;
     if (this->camera != nullptr) delete this->camera;
     if (this->world != nullptr) delete this->world;
     if (this->factory != nullptr) delete this->factory;
+    if (this->state != nullptr) delete this->state;
     cleanUp();
 }
 
@@ -238,9 +231,8 @@ void Game::createTestModels() {
         sun->setColor(1.0f, 1.0f, 0.0f, 1.0f);
         sun->setPosition(World::instance()->getSunDirection());
         sun->setScaleFactor(1.0f);
-        sunModel->addModelInstance(sun->calculateTransformationMatrix());
 
-        this->scene.push_back(std::unique_ptr<Renderable>(std::move(sun)));
+        this->state->addRenderable(sun);
     }
 
     std::shared_ptr<Model> teapotModel(this->factory->createModel("/res/models/teapot.obj"));
@@ -250,41 +242,39 @@ void Game::createTestModels() {
 
         Entity * teapot = new Entity(teapotModel);
         teapot->setPosition(4.0f, 0.0f, -15.0f);
-        teapot->setRotation(0, -45, 0);
+        teapot->setRotation(0, -90, 0);
         teapot->setScaleFactor(2.0f);
 
         for (int j=0;j<50;j++) {
             glm::vec3 pos = teapot->getPosition();
-            teapot->setPosition(pos.x + 10 , pos.y, pos.z);
+            teapot->setPosition(pos.x + 7 , pos.y, pos.z);
             teapot->setColor(0.0f, 0.0f, 1.0f, 1.0);
-            teapotModel->addModelInstance(teapot->calculateTransformationMatrix());
         }
 
-        this->scene.push_back(std::unique_ptr<Renderable>(std::move(teapot)));
+        this->state->addRenderable(teapot);
     }
 
     std::shared_ptr<Model> nanosuitModel(this->factory->createModel("/res/models/nanosuit.obj"));
     if (nanosuitModel->hasBeenLoaded()) {
-        nanosuitModel->useNormalsTexture(false);
+        nanosuitModel->useNormalsTexture(true);
         nanosuitModel->init();
 
         Entity * nanosuit = new Entity(nanosuitModel);
         nanosuit->useShader(new Shader(this->root + "/res/shaders/textures"));
         nanosuit->setColor(1.0f,1.0f,1.0f,1.0f);
-        nanosuit->setPosition(4.0f, 5.0f, -25.0f);
-        nanosuit->setRotation(0, -45, 0);
-        nanosuit->setScaleFactor(0.15f);
-        nanosuitModel->addModelInstance(nanosuit->calculateTransformationMatrix());
+        nanosuit->setPosition(4.0f, 0.0f, -15.0f);
+        //nanosuit->setRotation(0, -45, 0);
+        nanosuit->setScaleFactor(2.0f);
 
-        this->scene.push_back(std::unique_ptr<Renderable>(std::move(nanosuit)));
+        this->state->addRenderable(nanosuit);
     }
 
 
-    std::unique_ptr<Renderable> rock(this->factory->createImage("/res/models/rock.png"));
-    rock->setPosition(14.0f, 0.0f, -15.0f);
-    rock->setRotation(0, -45, 0);
+    Renderable * rock = this->factory->createImage("/res/models/rock.png");
+    rock->setPosition(4.0f, 0.0f, -15.0f);
+    rock->setRotation(0, -90, 0);
     rock->setScaleFactor(2.0f);
-    this->scene.push_back(std::move(rock));
+    this->state->addRenderable(rock);
 }
 std::map<std::string, std::shared_ptr<Texture>> Game::TEXTURES;
 

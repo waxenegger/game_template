@@ -3,6 +3,7 @@
 class Model;
 
 Entity::Entity(std::shared_ptr<Model> model) : Entity() {
+    this->id = model->getPath();
 	this->model = model;
 }
 

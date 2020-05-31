@@ -10,10 +10,13 @@ Terrain::Terrain(const std::string & dir) {
     this->dir = dir;
     int start = -100, end = 100, step = 2;
     int numberOfVertices = (end - start) / step;
+
+    Mesh m;
+
     for (int row=start;row<end;row+=step) {
         for (int col=start;col<end;col+=step) {
             const float randHeight = static_cast<const float>((rand() % 4));
-            this->mesh.vertices.push_back(Vertex(glm::vec3(row, randHeight, col)));
+            m.vertices.push_back(Vertex(glm::vec3(row, randHeight, col)));
         }
     }
     unsigned int i = 0;
@@ -25,41 +28,40 @@ Terrain::Terrain(const std::string & dir) {
             const int vertexIndexBelow = (i+1) * numberOfVertices + j;
             const int vertexIndexToRightBelow = vertexIndexBelow + 1;
 
-            this->mesh.indices.push_back(vertexIndex);
-            this->mesh.indices.push_back(vertexIndexToRight);
-            this->mesh.indices.push_back(vertexIndexBelow);
+            m.indices.push_back(vertexIndex);
+            m.indices.push_back(vertexIndexToRight);
+            m.indices.push_back(vertexIndexBelow);
 
-            this->mesh.indices.push_back(vertexIndexToRight);
-            this->mesh.indices.push_back(vertexIndexToRightBelow);
-            this->mesh.indices.push_back(vertexIndexBelow);
+            m.indices.push_back(vertexIndexToRight);
+            m.indices.push_back(vertexIndexToRightBelow);
+            m.indices.push_back(vertexIndexBelow);
 
             const int vertexIndexToLeft = j == 0 ? 1 : vertexIndex -1;
             const int vertexIndexUp = i == 0 ? 1 : (i-1) * numberOfVertices + j;
 
             const glm::vec3 norm = glm::vec3(
-                    this->mesh.vertices[vertexIndexToLeft].position.y -
-                    this->mesh.vertices[vertexIndexToRight].position.y,
+                    m.vertices[vertexIndexToLeft].position.y -
+                    m.vertices[vertexIndexToRight].position.y,
                     2.0f,
-                    this->mesh.vertices[vertexIndexBelow].position.y -
-                    this->mesh.vertices[vertexIndexUp].position.y);
-            this->mesh.vertices[vertexIndex].normal = glm::normalize(norm);
+                    m.vertices[vertexIndexBelow].position.y -
+                    m.vertices[vertexIndexUp].position.y);
+            m.vertices[vertexIndex].normal = glm::normalize(norm);
 
             j++;
         }
         i++;
     }
 
+    this->mesh.push_back(m);
+
     // set uniform color for now
-    Material material;
-    material.diffuseColor = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
-    this->mesh.materials.push_back(material);
-    this->mesh.modelMatrices.push_back(glm::mat4(1.0f));
+    this->setColor(0.0f, 1.0f, 0.0f, 1.0f);
 
     this->initialized = true;
 }
 
 void Terrain::init() {
-    this->mesh.init();
+    if (this->mesh.size() != 0) this->mesh[0].init();
 
     this->initialized = true;
 }
@@ -77,7 +79,7 @@ void Terrain::render() {
         this->shader->setVec3("eyePosition", Camera::instance()->getPosition());
         //shader->dumpActiveShaderAttributes();
 
-        this->mesh.render(this->shader);
+        if (this->mesh.size() != 0) this->mesh[0].render(this->shader);
 
         this->shader->stopUse();
     }
@@ -86,7 +88,7 @@ void Terrain::render() {
 void Terrain::cleanUp() {
     if (!this->initialized) return;
 
-    this->mesh.cleanUp();
+    if (this->mesh.size() != 0) this->mesh[0].cleanUp();
 
     this->initialized = false;
 }
