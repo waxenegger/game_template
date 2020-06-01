@@ -7,6 +7,11 @@ class RenderableGroup {
     private:
         std::string id = "";
         std::vector<Renderable*> content;
+
+        GLuint MODEL_MATRIX = 0, MATERIALS = 0;
+        std::vector<glm::mat4> modelMatrices;
+        std::vector<Material> materials;
+
     public:
         RenderableGroup(std::string id);
         ~RenderableGroup();

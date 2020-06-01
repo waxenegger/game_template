@@ -69,7 +69,6 @@ void Terrain::init() {
 void Terrain::render() {
     if (!this->initialized || this->shader == nullptr) return;
 
-    this->shader->use();
     if (this->shader->isBeingUsed()) {
         this->shader->setMat4("view", Camera::instance()->getViewMatrix());
         this->shader->setMat4("projection", Camera::instance()->getPerspective());
@@ -78,10 +77,6 @@ void Terrain::render() {
         this->shader->setVec3("sunLightColor", World::instance()->getSunLightColor());
         this->shader->setVec3("eyePosition", Camera::instance()->getPosition());
         //shader->dumpActiveShaderAttributes();
-
-        if (this->mesh.size() != 0) this->mesh[0].render(this->shader);
-
-        this->shader->stopUse();
     }
 }
 

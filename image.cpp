@@ -113,7 +113,6 @@ void Image::init() {
 void Image::render() {
     if (this->shader == nullptr) return;
 
-    this->shader->use();
     if (this->shader->isBeingUsed()) {
         this->shader->setMat4("view", Camera::instance()->getViewMatrix());
         this->shader->setMat4("projection", Camera::instance()->getPerspective());
@@ -131,10 +130,6 @@ void Image::render() {
         glBindTexture(GL_TEXTURE_2D, this->textureId);
         this->shader->setInt("has_" + Model::DIFFUSE_TEXTURE, 1);
         this->shader->setInt(Model::DIFFUSE_TEXTURE, 0);
-
-        if (this->mesh.size() != 0) this->mesh[0].render(this->shader);
-
-        this->shader->stopUse();
     }
 }
 

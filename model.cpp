@@ -144,7 +144,6 @@ void Model::init() {
 void Model::render(Shader * shader) {
     if (!this->initialized || shader == nullptr) return;
 
-    shader->use();
     if (shader->isBeingUsed()) {
         shader->setMat4("view", Camera::instance()->getViewMatrix());
         shader->setMat4("projection", Camera::instance()->getPerspective());
@@ -152,8 +151,6 @@ void Model::render(Shader * shader) {
         shader->setVec3("sunDirection", World::instance()->getSunDirection());
         shader->setVec3("sunLightColor", World::instance()->getSunLightColor());
         shader->setVec3("eyePosition", Camera::instance()->getPosition());
-
-        for (auto & mesh : this->meshes) mesh.render(shader);
     }
 }
 

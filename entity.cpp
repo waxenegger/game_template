@@ -14,12 +14,7 @@ Entity::Entity(std::shared_ptr<Model> model, Shader * shader) : Entity(model) {
 void Entity::render() {
     if (this->model == nullptr || this->shader == nullptr) return;
 
-	this->shader->use();
-	if (this->shader->isBeingUsed()) {
-	    this->model->render(this->shader);
-
-	    this->shader->stopUse();
-	}
+	if (this->shader->isBeingUsed()) this->model->render(this->shader);
 }
 
 void Entity::cleanUp() { if (this->model != nullptr) this->model->cleanUp(); }
