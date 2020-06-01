@@ -92,19 +92,19 @@ void Mesh::render(Shader * shader) {
     glBufferData(GL_ARRAY_BUFFER, this->materials.size() * sizeof(Material), &this->materials[0], GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(6);
-    glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(Material), (void*)offsetof(Material, emissiveColor));
+    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Material), (void*)offsetof(Material, emissiveColor));
 
     glEnableVertexAttribArray(7);
-    glVertexAttribPointer(7, 3, GL_FLOAT, GL_FALSE, sizeof(Material), (void*)offsetof(Material, ambientColor));
+    glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof(Material), (void*)offsetof(Material, ambientColor));
 
     glEnableVertexAttribArray(8);
-    glVertexAttribPointer(8, 3, GL_FLOAT, GL_FALSE, sizeof(Material), (void*)offsetof(Material, diffuseColor));
+    glVertexAttribPointer(8, 4, GL_FLOAT, GL_FALSE, sizeof(Material), (void*)offsetof(Material, diffuseColor));
 
     glEnableVertexAttribArray(9);
-    glVertexAttribPointer(9, 3, GL_FLOAT, GL_FALSE, sizeof(Material), (void*)offsetof(Material, specularColor));
+    glVertexAttribPointer(9, 4, GL_FLOAT, GL_FALSE, sizeof(Material), (void*)offsetof(Material, specularColor));
 
     glEnableVertexAttribArray(10);
-    glVertexAttribPointer(10, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Material, shininess));
+    glVertexAttribPointer(10, 1, GL_FLOAT, GL_FALSE, sizeof(Material), (void*)offsetof(Material, shininess));
 
     glVertexAttribDivisor(6, 1);
     glVertexAttribDivisor(7, 1);
