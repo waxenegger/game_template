@@ -11,12 +11,10 @@ Terrain::Terrain(const std::string & dir) {
     int start = -100, end = 100, step = 2;
     int numberOfVertices = (end - start) / step;
 
-    Mesh m;
-
     for (int row=start;row<end;row+=step) {
         for (int col=start;col<end;col+=step) {
             const float randHeight = static_cast<const float>((rand() % 4));
-            m.vertices.push_back(Vertex(glm::vec3(row, randHeight, col)));
+            this->mesh.vertices.push_back(Vertex(glm::vec3(row, randHeight, col)));
         }
     }
     unsigned int i = 0;
@@ -28,40 +26,45 @@ Terrain::Terrain(const std::string & dir) {
             const int vertexIndexBelow = (i+1) * numberOfVertices + j;
             const int vertexIndexToRightBelow = vertexIndexBelow + 1;
 
-            m.indices.push_back(vertexIndex);
-            m.indices.push_back(vertexIndexToRight);
-            m.indices.push_back(vertexIndexBelow);
+            this->mesh.indices.push_back(vertexIndex);
+            this->mesh.indices.push_back(vertexIndexToRight);
+            this->mesh.indices.push_back(vertexIndexBelow);
 
-            m.indices.push_back(vertexIndexToRight);
-            m.indices.push_back(vertexIndexToRightBelow);
-            m.indices.push_back(vertexIndexBelow);
+            this->mesh.indices.push_back(vertexIndexToRight);
+            this->mesh.indices.push_back(vertexIndexToRightBelow);
+            this->mesh.indices.push_back(vertexIndexBelow);
 
             const int vertexIndexToLeft = j == 0 ? 1 : vertexIndex -1;
             const int vertexIndexUp = i == 0 ? 1 : (i-1) * numberOfVertices + j;
 
             const glm::vec3 norm = glm::vec3(
-                    m.vertices[vertexIndexToLeft].position.y -
-                    m.vertices[vertexIndexToRight].position.y,
+                    this->mesh.vertices[vertexIndexToLeft].position.y -
+                    this->mesh.vertices[vertexIndexToRight].position.y,
                     2.0f,
-                    m.vertices[vertexIndexBelow].position.y -
-                    m.vertices[vertexIndexUp].position.y);
-            m.vertices[vertexIndex].normal = glm::normalize(norm);
+                    this->mesh.vertices[vertexIndexBelow].position.y -
+                    this->mesh.vertices[vertexIndexUp].position.y);
+            this->mesh.vertices[vertexIndex].normal = glm::normalize(norm);
 
             j++;
         }
         i++;
     }
 
-    this->mesh.push_back(m);
-
-    // set uniform color for now
     this->setColor(0.0f, 1.0f, 0.0f, 1.0f);
+    std::vector<Material> materials;
+    materials.push_back(this->getMaterial());
+    this->setMaterials(materials);
+
+    this->setPosition(glm::vec3(0.0f));
+    std::vector<glm::mat4> modelMatrices;
+    modelMatrices.push_back(this->calculateTransformationMatrix());
+    this->setModelMatrices(modelMatrices);
 
     this->initialized = true;
 }
 
 void Terrain::init() {
-    if (this->mesh.size() != 0) this->mesh[0].init();
+    this->mesh.init();
 
     this->initialized = true;
 }
@@ -69,6 +72,7 @@ void Terrain::init() {
 void Terrain::render() {
     if (!this->initialized || this->shader == nullptr) return;
 
+    this->shader->use();
     if (this->shader->isBeingUsed()) {
         this->shader->setMat4("view", Camera::instance()->getViewMatrix());
         this->shader->setMat4("projection", Camera::instance()->getPerspective());
@@ -77,13 +81,25 @@ void Terrain::render() {
         this->shader->setVec3("sunLightColor", World::instance()->getSunLightColor());
         this->shader->setVec3("eyePosition", Camera::instance()->getPosition());
         //shader->dumpActiveShaderAttributes();
+
+        this->mesh.render(this->shader);
+
+        this->shader->stopUse();
     }
+}
+
+void Terrain::setMaterials(std::vector<Material> & materials) {
+    this->mesh.materials = materials;
+}
+
+void Terrain::setModelMatrices(std::vector<glm::mat4> & modelMatrices) {
+    this->mesh.modelMatrices = modelMatrices;
 }
 
 void Terrain::cleanUp() {
     if (!this->initialized) return;
 
-    if (this->mesh.size() != 0) this->mesh[0].cleanUp();
+    this->mesh.cleanUp();
 
     this->initialized = false;
 }

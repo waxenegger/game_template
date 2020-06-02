@@ -206,10 +206,16 @@ class Texture {
 
 class Mesh {
     public:
+        GLuint VAO = 0, VBO = 0, EBO = 0;
+
         std::vector<Vertex> vertices;
         std::vector<unsigned int> indices;
         std::vector<std::shared_ptr<Texture>> textures;
-        GLuint VAO = 0, VBO = 0, EBO = 0;
+
+        GLuint MODEL_MATRIX = 0, MATERIALS = 0;
+        std::vector<glm::mat4> modelMatrices;
+        std::vector<Material> materials;
+
         bool useNormalsTexture = true;
 
         Mesh() {};
@@ -240,7 +246,8 @@ class Renderable {
 
         Renderable() {};
         virtual std::string getRenderableID() = 0;
-        virtual std::vector<Mesh> & getMeshes() = 0;
+        virtual void setMaterials(std::vector<Material> & materials) = 0;
+        virtual void setModelMatrices(std::vector<glm::mat4> & modelMatrices) = 0;
         std::string generateRendarableID() {
             static std::random_device dev;
             static std::mt19937 rng(dev());
@@ -324,7 +331,7 @@ class Renderable {
 class Terrain : public Renderable {
     private:
         std::string dir;
-        std::vector<Mesh> mesh;
+        Mesh mesh;
         std::string id = this->generateRendarableID();
     public:
         Terrain(const Terrain&) = delete;
@@ -336,11 +343,10 @@ class Terrain : public Renderable {
         void init();
         void render();
         void cleanUp();
+        void setMaterials(std::vector<Material> & materials);
+        void setModelMatrices(std::vector<glm::mat4> & modelMatrices);
         std::string getRenderableID() {
             return this->id;
-        }
-        std::vector<Mesh> & getMeshes() {
-            return this->mesh;
         }
 };
 
@@ -379,18 +385,17 @@ class Model {
         void addMaterialInstance(const Material & material);
         void addModelInstance(const glm::mat4 & modelMatrix);
         void useNormalsTexture(const bool flag);
+        void setMaterials(std::vector<Material> & materials);
+        void setModelMatrices(std::vector<glm::mat4> & modelMatrices);
         std::string getPath() {
             return this->file;
-        }
-        std::vector<Mesh> & getMeshes() {
-            return this->meshes;
         }
 };
 
 class Image : public Renderable {
     private:
         unsigned int textureId = 0;
-        std::vector<Mesh> mesh;
+        Mesh mesh;
         SDL_Surface * image = nullptr;
         Image() {};
         void init();
@@ -405,11 +410,10 @@ class Image : public Renderable {
         static Image * fromText(std::string fontFile, std::string text, int size);
         void render();
         void cleanUp();
+        void setMaterials(std::vector<Material> & materials);
+        void setModelMatrices(std::vector<glm::mat4> & modelMatrices);
         std::string getRenderableID() {
             return this->id;
-        }
-        std::vector<Mesh> & getMeshes() {
-            return this->mesh;
         }
 };
 
@@ -491,11 +495,10 @@ class Entity : public Renderable {
         Entity(std::shared_ptr<Model> model, Shader * shader);
         void render();
         void cleanUp();
+        void setMaterials(std::vector<Material> & materials);
+        void setModelMatrices(std::vector<glm::mat4> & modelMatrices);
         std::string getRenderableID() {
             return this->id;
-        }
-        std::vector<Mesh> & getMeshes() {
-            return this->model->getMeshes();
         }
 };
 

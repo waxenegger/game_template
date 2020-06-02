@@ -151,8 +151,19 @@ void Model::render(Shader * shader) {
         shader->setVec3("sunDirection", World::instance()->getSunDirection());
         shader->setVec3("sunLightColor", World::instance()->getSunLightColor());
         shader->setVec3("eyePosition", Camera::instance()->getPosition());
+
+        for (auto & mesh : this->meshes) mesh.render(shader);
     }
 }
+
+void Model::setMaterials(std::vector<Material> & materials) {
+    for (auto & mesh : this->meshes) mesh.materials = materials;
+}
+
+void Model::setModelMatrices(std::vector<glm::mat4> & modelMatrices) {
+    for (auto & mesh : this->meshes) mesh.modelMatrices = modelMatrices;
+}
+
 
 void Model::cleanUp() {
     if (!this->initialized) return;

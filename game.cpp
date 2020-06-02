@@ -83,7 +83,7 @@ void Game::run() {
     SDL_Event e;
 
     SDL_StartTextInput();
-    SDL_SetRelativeMouseMode(SDL_TRUE);
+    SDL_SetRelativeMouseMode(SDL_FALSE);
 
     this->createTestModels();
 

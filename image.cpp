@@ -58,35 +58,33 @@ void Image::init() {
     const float w = 10.0f;
     const float h = 10.0f;
 
-    Mesh m;
-
     Vertex one(glm::vec3(0.0f, h, 0.0f));
     one.uv = glm::vec2(1.0f, 0.0f);
     one.normal = glm::vec3(0.0f, h, zDirNormal);
-    m.vertices.push_back(one);
+    this->mesh.vertices.push_back(one);
 
     Vertex two(glm::vec3(w, h, 0.0f));
     two.uv = glm::vec2(0.0f, 0.0f);
     two.normal = glm::vec3(w, h, zDirNormal);
-    m.vertices.push_back(two);
+    this->mesh.vertices.push_back(two);
 
     Vertex three(glm::vec3(w, 0.0f, 0.0f));
     three.uv = glm::vec2(0.0f, 1.0f);
     three.normal = glm::vec3(w, 0.0f, zDirNormal);
-    m.vertices.push_back(three);
+    this->mesh.vertices.push_back(three);
 
     Vertex four(glm::vec3(0.0f, 0.0f, 0.0f));
     four.uv = glm::vec2(1.0f, 1.0f);
     four.normal = glm::vec3(0.0f, 0.0f, zDirNormal);
-    m.vertices.push_back(four);
+    this->mesh.vertices.push_back(four);
 
-    m.indices.push_back(2);
-    m.indices.push_back(3);
-    m.indices.push_back(0);
+    this->mesh.indices.push_back(2);
+    this->mesh.indices.push_back(3);
+    this->mesh.indices.push_back(0);
 
-    m.indices.push_back(1);
-    m.indices.push_back(2);
-    m.indices.push_back(0);
+    this->mesh.indices.push_back(1);
+    this->mesh.indices.push_back(2);
+    this->mesh.indices.push_back(0);
 
     glGenTextures(1, &this->textureId);
 
@@ -103,9 +101,7 @@ void Image::init() {
             GL_UNSIGNED_BYTE, this->image->pixels);
     glGenerateMipmap(GL_TEXTURE_2D);
 
-    m.init();
-
-    this->mesh.push_back(m);
+    this->mesh.init();
 
     this->initialized = true;
 }
@@ -113,6 +109,7 @@ void Image::init() {
 void Image::render() {
     if (this->shader == nullptr) return;
 
+    this->shader->use();
     if (this->shader->isBeingUsed()) {
         this->shader->setMat4("view", Camera::instance()->getViewMatrix());
         this->shader->setMat4("projection", Camera::instance()->getPerspective());
@@ -130,10 +127,21 @@ void Image::render() {
         glBindTexture(GL_TEXTURE_2D, this->textureId);
         this->shader->setInt("has_" + Model::DIFFUSE_TEXTURE, 1);
         this->shader->setInt(Model::DIFFUSE_TEXTURE, 0);
+
+        this->mesh.render(this->shader);
+        this->shader->stopUse();
     }
+}
+
+void Image::setMaterials(std::vector<Material> & materials) {
+    this->mesh.materials = materials;
+}
+
+void Image::setModelMatrices(std::vector<glm::mat4> & modelMatrices) {
+    this->mesh.modelMatrices = modelMatrices;
 }
 
 void Image::cleanUp() {
     glDeleteTextures(1, &this->textureId);
-    if (this->mesh.size() != 0) this->mesh[0].cleanUp();
+    this->mesh.cleanUp();
 }
