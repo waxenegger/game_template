@@ -68,10 +68,10 @@ static const std::string DEFAULT_FRAGMENT_SHADER =
 
 class Material {
     public:
-        glm::vec4 ambientColor = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
+        glm::vec4 ambientColor = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f);
         glm::vec4 emissiveColor = glm::vec4(0.1f, 0.1f, 0.1f,1.0f);
         glm::vec4 diffuseColor = glm::vec4(1.0f, 1.0f,1.0f, 1.0f);
-        glm::vec4 specularColor = glm::vec4(0.4f,0.4f,0.4f,1.0f);
+        glm::vec4 specularColor = glm::vec4(0.2f,0.2f,0.2f,1.0f);
         float shininess = 1.0f;
         Material() {};
 };
@@ -206,12 +206,16 @@ class Texture {
 
 class Mesh {
     public:
+        GLuint VAO = 0, VBO = 0, EBO = 0;
+
         std::vector<Vertex> vertices;
         std::vector<unsigned int> indices;
         std::vector<std::shared_ptr<Texture>> textures;
+
+        GLuint MODEL_MATRIX = 0, MATERIALS = 0;
         std::vector<glm::mat4> modelMatrices;
         std::vector<Material> materials;
-        GLuint VAO = 0, VBO = 0, EBO = 0, MODEL_MATRIX = 0, MATERIALS = 0;
+
         bool useNormalsTexture = true;
 
         Mesh() {};
@@ -229,6 +233,7 @@ class Renderable {
     protected:
         bool initialized = false;
         Shader * shader = new Shader();
+        Material material;
 
         glm::vec3 position = glm::vec3(0.0f);
         glm::vec3 rotation = glm::vec3(0.0f);
@@ -240,6 +245,26 @@ class Renderable {
         Renderable& operator=(Renderable&&) noexcept = default;
 
         Renderable() {};
+        virtual std::string getRenderableID() = 0;
+        virtual void setMaterials(std::vector<Material> & materials) = 0;
+        virtual void setModelMatrices(std::vector<glm::mat4> & modelMatrices) = 0;
+        std::string generateRendarableID() {
+            static std::random_device dev;
+            static std::mt19937 rng(dev());
+
+            std::uniform_int_distribution<int> dist(0, 15);
+
+            const char v[] = "0123456789abcdef";
+            const bool dash[] = { 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0 };
+
+            std::string res;
+            for (int i = 0; i < 16; i++) {
+                if (dash[i]) res += "-";
+                res += v[dist(rng)];
+                res += v[dist(rng)];
+            }
+            return res;
+        }
         virtual void cleanUp() = 0;
         virtual void render() = 0;
         float getScaleFactor() {
@@ -267,16 +292,22 @@ class Renderable {
             this->rotation.y = glm::radians(static_cast<float>(y));
             this->rotation.z = glm::radians(static_cast<float>(z));
         }
+        void setColor(const float red, const float green, const float blue, const float alpha) {
+            this->material.diffuseColor = glm::vec4(red, green, blue, alpha);
+        }
+        Material getMaterial() {
+            return this->material;
+        }
         glm::mat4 calculateTransformationMatrix() {
             glm::mat4 transformation = glm::mat4(1.0f);
 
             transformation = glm::translate(transformation, this->position);
 
-            transformation = glm::scale(transformation, glm::vec3(this->scaleFactor));
-
             if (this->rotation.x != 0.0f) transformation = glm::rotate(transformation, this->rotation.x, glm::vec3(1, 0, 0));
             if (this->rotation.y != 0.0f) transformation = glm::rotate(transformation, this->rotation.y, glm::vec3(0, 1, 0));
             if (this->rotation.z != 0.0f) transformation = glm::rotate(transformation, this->rotation.z, glm::vec3(0, 0, 1));
+
+            transformation = glm::scale(transformation, glm::vec3(this->scaleFactor));
 
             return transformation;
         }
@@ -301,6 +332,7 @@ class Terrain : public Renderable {
     private:
         std::string dir;
         Mesh mesh;
+        std::string id = this->generateRendarableID();
     public:
         Terrain(const Terrain&) = delete;
         Terrain& operator=(const Terrain&) = delete;
@@ -311,6 +343,11 @@ class Terrain : public Renderable {
         void init();
         void render();
         void cleanUp();
+        void setMaterials(std::vector<Material> & materials);
+        void setModelMatrices(std::vector<glm::mat4> & modelMatrices);
+        std::string getRenderableID() {
+            return this->id;
+        }
 };
 
 class Model {
@@ -348,6 +385,11 @@ class Model {
         void addMaterialInstance(const Material & material);
         void addModelInstance(const glm::mat4 & modelMatrix);
         void useNormalsTexture(const bool flag);
+        void setMaterials(std::vector<Material> & materials);
+        void setModelMatrices(std::vector<glm::mat4> & modelMatrices);
+        std::string getPath() {
+            return this->file;
+        }
 };
 
 class Image : public Renderable {
@@ -357,6 +399,7 @@ class Image : public Renderable {
         SDL_Surface * image = nullptr;
         Image() {};
         void init();
+        std::string id = this->generateRendarableID();
     public:
         Image(const Image&) = delete;
         Image& operator=(const Image&) = delete;
@@ -367,6 +410,11 @@ class Image : public Renderable {
         static Image * fromText(std::string fontFile, std::string text, int size);
         void render();
         void cleanUp();
+        void setMaterials(std::vector<Material> & materials);
+        void setModelMatrices(std::vector<glm::mat4> & modelMatrices);
+        std::string getRenderableID() {
+            return this->id;
+        }
 };
 
 class ModelFactory final {
@@ -375,7 +423,9 @@ class ModelFactory final {
         static ModelFactory * singleton;
         ModelFactory() {};
         ModelFactory(std::string & dir);
+        std::map<std::string, Model * > MODELS;
     public:
+        ~ModelFactory();
         static ModelFactory * instance() {
             if (ModelFactory::singleton == nullptr) ModelFactory::singleton = new ModelFactory();
             return ModelFactory::singleton;
@@ -434,24 +484,23 @@ class Camera final {
 
 class Entity : public Renderable {
     private:
-        std::shared_ptr<Model> model = nullptr;
+        Model * model = nullptr;
+        std::string id = this->generateRendarableID();
     public:
         Entity(const Entity&) = delete;
         Entity& operator=(const Entity&) = delete;
         Entity(Entity&&) noexcept = default;
         Entity& operator=(Entity&&) noexcept = default;
 
-        Entity() {};
-        Entity(std::shared_ptr<Model> model);
-        Entity(std::shared_ptr<Model> model, Shader * shader);
+        Entity() {}
+        Entity(Model * model);
+        Entity(Model * model, Shader * shader);
         void render();
         void cleanUp();
-        void setColor(const float red, const float green, const float blue, const float alpha) {
-            if (this->model == nullptr) return;
-
-            Material newColorMaterial;
-            newColorMaterial.diffuseColor = glm::vec4(red, green, blue, alpha);
-            this->model->addMaterialInstance(newColorMaterial);
+        void setMaterials(std::vector<Material> & materials);
+        void setModelMatrices(std::vector<glm::mat4> & modelMatrices);
+        std::string getRenderableID() {
+            return this->id;
         }
 };
 

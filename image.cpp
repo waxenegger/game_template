@@ -3,6 +3,7 @@
 
 Image * Image::fromFile(std::string file) {
     Image * img = new Image();
+    img->id = file;
 
     std::map<std::string, std::shared_ptr<Texture>>::iterator val(Game::TEXTURES.find(file));
 
@@ -102,10 +103,6 @@ void Image::init() {
 
     this->mesh.init();
 
-    Material material;
-    this->mesh.materials.push_back(material);
-    this->mesh.modelMatrices.push_back(this->calculateTransformationMatrix());
-
     this->initialized = true;
 }
 
@@ -132,9 +129,16 @@ void Image::render() {
         this->shader->setInt(Model::DIFFUSE_TEXTURE, 0);
 
         this->mesh.render(this->shader);
-
         this->shader->stopUse();
     }
+}
+
+void Image::setMaterials(std::vector<Material> & materials) {
+    this->mesh.materials = materials;
+}
+
+void Image::setModelMatrices(std::vector<glm::mat4> & modelMatrices) {
+    this->mesh.modelMatrices = modelMatrices;
 }
 
 void Image::cleanUp() {

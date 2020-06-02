@@ -3,6 +3,7 @@
 
 #include "render.hpp"
 #include "world.hpp"
+#include "state.hpp"
 
 class Game {
     private:
@@ -17,6 +18,8 @@ class Game {
 
         bool wireframe = false;
 
+        GameState * state = nullptr;
+
         SDL_Window * window = nullptr;
         SDL_GLContext glContext = nullptr;
 
@@ -24,9 +27,6 @@ class Game {
 
         World * world = World::instance();
         Camera * camera = Camera::instance(-5.0f, 7.0f, -5.0f);
-
-        std::vector<std::unique_ptr<Renderable>> scene;
-        Terrain * terrain = nullptr;
 
         void clearScreen(float r, float g, float b, float a);
         void render();

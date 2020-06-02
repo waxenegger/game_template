@@ -2,8 +2,11 @@
 
 void Mesh::init() {
     glGenVertexArrays(1, &this->VAO);
+
     glGenBuffers(1, &this->VBO);
     glGenBuffers(1, &this->EBO);
+    glGenBuffers(1, &this->MODEL_MATRIX);
+    glGenBuffers(1, &this->MATERIALS);
 
     glBindVertexArray(this->VAO);
     glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
@@ -67,8 +70,6 @@ void Mesh::render(Shader * shader) {
         }
     }
 
-    // instanced part - start
-    glGenBuffers(1, &this->MODEL_MATRIX);
     glBindBuffer(GL_ARRAY_BUFFER, this->MODEL_MATRIX);
     glBufferData(GL_ARRAY_BUFFER, this->modelMatrices.size() * sizeof(glm::mat4), &this->modelMatrices[0], GL_STATIC_DRAW);
 
@@ -86,8 +87,6 @@ void Mesh::render(Shader * shader) {
     glVertexAttribDivisor(4, 1);
     glVertexAttribDivisor(5, 1);
 
-
-    glGenBuffers(1, &this->MATERIALS);
     glBindBuffer(GL_ARRAY_BUFFER, this->MATERIALS);
     glBufferData(GL_ARRAY_BUFFER, this->materials.size() * sizeof(Material), &this->materials[0], GL_STATIC_DRAW);
 
@@ -111,12 +110,8 @@ void Mesh::render(Shader * shader) {
     glVertexAttribDivisor(8, 1);
     glVertexAttribDivisor(9, 1);
     glVertexAttribDivisor(10, 1);
-    // instanced part - end
-
 
     glDrawElementsInstanced(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0, this->modelMatrices.size());
-    //glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
-
     glBindVertexArray(0);
 }
 
@@ -124,9 +119,12 @@ void Mesh::cleanUp() {
     for (int i=0;i<11;i++) glDisableVertexAttribArray(i);
 
     glDeleteVertexArrays(1, &this->VAO);
+
     glDeleteBuffers(1, &this->VBO);
     glDeleteBuffers(1, &this->EBO);
+
     glDeleteBuffers(1, &this->MODEL_MATRIX);
     glDeleteBuffers(1, &this->MATERIALS);
+
     for (auto texture : this->textures) texture->cleanUp();
 }

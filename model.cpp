@@ -59,9 +59,6 @@ Mesh Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
          if (ambient != nullptr)  mat.ambientColor  = glm::vec4(ambient->r, ambient->g, ambient->b, 1.0f);
          if (diffuse != nullptr)  mat.diffuseColor  = glm::vec4(diffuse->r, diffuse->g, diffuse->b, 1.0f);
          if (specular != nullptr) mat.specularColor  = glm::vec4(specular->r, specular->g, specular->b, 1.0f);
-
-         // TODO: do this smarter...
-         //this->addMaterialInstance(mat);
      }
 
      if (mesh->mNumVertices > 0) vertices.reserve(mesh->mNumVertices);
@@ -147,7 +144,6 @@ void Model::init() {
 void Model::render(Shader * shader) {
     if (!this->initialized || shader == nullptr) return;
 
-    shader->use();
     if (shader->isBeingUsed()) {
         shader->setMat4("view", Camera::instance()->getViewMatrix());
         shader->setMat4("projection", Camera::instance()->getPerspective());
@@ -160,6 +156,15 @@ void Model::render(Shader * shader) {
     }
 }
 
+void Model::setMaterials(std::vector<Material> & materials) {
+    for (auto & mesh : this->meshes) mesh.materials = materials;
+}
+
+void Model::setModelMatrices(std::vector<glm::mat4> & modelMatrices) {
+    for (auto & mesh : this->meshes) mesh.modelMatrices = modelMatrices;
+}
+
+
 void Model::cleanUp() {
     if (!this->initialized) return;
 
@@ -169,16 +174,8 @@ void Model::cleanUp() {
     this->loaded = false;
 }
 
-void Model::addMaterialInstance(const Material & material) {
-    for (auto & mesh : this->meshes) mesh.materials.push_back(material);
-}
-
 void Model::useNormalsTexture(const bool flag) {
     for (auto & mesh : this->meshes) mesh.useNormalsTexture = flag;
-}
-
-void Model::addModelInstance(const glm::mat4 & modelMatrix) {
-    for (auto & mesh : this->meshes) mesh.modelMatrices.push_back(modelMatrix);
 }
 
 const std::string Model::AMBIENT_TEXTURE = "texture_ambient";

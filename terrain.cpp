@@ -10,6 +10,7 @@ Terrain::Terrain(const std::string & dir) {
     this->dir = dir;
     int start = -100, end = 100, step = 2;
     int numberOfVertices = (end - start) / step;
+
     for (int row=start;row<end;row+=step) {
         for (int col=start;col<end;col+=step) {
             const float randHeight = static_cast<const float>((rand() % 4));
@@ -49,11 +50,15 @@ Terrain::Terrain(const std::string & dir) {
         i++;
     }
 
-    // set uniform color for now
-    Material material;
-    material.diffuseColor = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
-    this->mesh.materials.push_back(material);
-    this->mesh.modelMatrices.push_back(glm::mat4(1.0f));
+    this->setColor(0.0f, 1.0f, 0.0f, 1.0f);
+    std::vector<Material> materials;
+    materials.push_back(this->getMaterial());
+    this->setMaterials(materials);
+
+    this->setPosition(glm::vec3(0.0f));
+    std::vector<glm::mat4> modelMatrices;
+    modelMatrices.push_back(this->calculateTransformationMatrix());
+    this->setModelMatrices(modelMatrices);
 
     this->initialized = true;
 }
@@ -81,6 +86,14 @@ void Terrain::render() {
 
         this->shader->stopUse();
     }
+}
+
+void Terrain::setMaterials(std::vector<Material> & materials) {
+    this->mesh.materials = materials;
+}
+
+void Terrain::setModelMatrices(std::vector<glm::mat4> & modelMatrices) {
+    this->mesh.modelMatrices = modelMatrices;
 }
 
 void Terrain::cleanUp() {

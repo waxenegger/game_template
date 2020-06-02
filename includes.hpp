@@ -13,6 +13,7 @@
     #include <vector>
     #include <map>
     #include <time.h>
+    #include <random>
 
     #include <SDL.h>
     #include <SDL_image.h>
