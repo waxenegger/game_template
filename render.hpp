@@ -423,7 +423,9 @@ class ModelFactory final {
         static ModelFactory * singleton;
         ModelFactory() {};
         ModelFactory(std::string & dir);
+        std::map<std::string, Model * > MODELS;
     public:
+        ~ModelFactory();
         static ModelFactory * instance() {
             if (ModelFactory::singleton == nullptr) ModelFactory::singleton = new ModelFactory();
             return ModelFactory::singleton;
@@ -482,7 +484,7 @@ class Camera final {
 
 class Entity : public Renderable {
     private:
-        std::shared_ptr<Model> model = nullptr;
+        Model * model = nullptr;
         std::string id = this->generateRendarableID();
     public:
         Entity(const Entity&) = delete;
@@ -491,8 +493,8 @@ class Entity : public Renderable {
         Entity& operator=(Entity&&) noexcept = default;
 
         Entity() {}
-        Entity(std::shared_ptr<Model> model);
-        Entity(std::shared_ptr<Model> model, Shader * shader);
+        Entity(Model * model);
+        Entity(Model * model, Shader * shader);
         void render();
         void cleanUp();
         void setMaterials(std::vector<Material> & materials);

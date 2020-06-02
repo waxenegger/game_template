@@ -83,7 +83,7 @@ void Game::run() {
     SDL_Event e;
 
     SDL_StartTextInput();
-    SDL_SetRelativeMouseMode(SDL_FALSE);
+    SDL_SetRelativeMouseMode(SDL_TRUE);
 
     this->createTestModels();
 
@@ -221,9 +221,9 @@ Game::~Game() {
 
 void Game::createTestModels() {
 
-    //glEnable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
 
-    std::shared_ptr<Model> sunModel(this->factory->createModel("/res/models/sun.obj"));
+    Model * sunModel(this->factory->createModel("/res/models/sun.obj"));
     if (sunModel->hasBeenLoaded()) {
         sunModel->useNormalsTexture(false);
         sunModel->init();
@@ -235,38 +235,34 @@ void Game::createTestModels() {
         this->state->addRenderable(sun);
     }
 
-    std::shared_ptr<Model> teapotModel(this->factory->createModel("/res/models/teapot.obj"));
+    Model * teapotModel(this->factory->createModel("/res/models/teapot.obj"));
     if (teapotModel->hasBeenLoaded()) {
         teapotModel->useNormalsTexture(true);
         teapotModel->init();
 
-        Entity * teapot = new Entity(teapotModel);
-        teapot->setPosition(4.0f, 0.0f, -15.0f);
-        teapot->setRotation(0, -90, 0);
-        teapot->setScaleFactor(2.0f);
-
         for (int j=0;j<50;j++) {
-            glm::vec3 pos = teapot->getPosition();
-            teapot->setPosition(pos.x + 7 , pos.y, pos.z);
+            Entity * teapot = new Entity(teapotModel);
             teapot->setColor(0.0f, 0.0f, 1.0f, 1.0);
+            teapot->setPosition(4.0f + 10*j, 0.0f, -15.0f);
+            teapot->setRotation(0, -90, 0);
+            teapot->setScaleFactor(2.0f);
+            this->state->addRenderable(teapot);
         }
-
-        this->state->addRenderable(teapot);
     }
 
-    std::shared_ptr<Model> nanosuitModel(this->factory->createModel("/res/models/nanosuit.obj"));
+    Model * nanosuitModel(this->factory->createModel("/res/models/nanosuit.obj"));
     if (nanosuitModel->hasBeenLoaded()) {
         nanosuitModel->useNormalsTexture(true);
         nanosuitModel->init();
 
-        Entity * nanosuit = new Entity(nanosuitModel);
-        nanosuit->useShader(new Shader(this->root + "/res/shaders/textures"));
-        nanosuit->setColor(1.0f,1.0f,1.0f,1.0f);
-        nanosuit->setPosition(4.0f, 0.0f, -15.0f);
-        //nanosuit->setRotation(0, -45, 0);
-        nanosuit->setScaleFactor(2.0f);
-
-        this->state->addRenderable(nanosuit);
+        for (int j=0;j<50;j++) {
+            Entity * nanosuit = new Entity(nanosuitModel);
+            nanosuit->useShader(new Shader(this->root + "/res/shaders/textures"));
+            nanosuit->setColor(1.0f,1.0f,1.0f,1.0f);
+            nanosuit->setPosition(4.0f + 10*j, 0.0f, -15.0f);
+            nanosuit->setScaleFactor(1.0f);
+            this->state->addRenderable(nanosuit);
+        }
     }
 
 

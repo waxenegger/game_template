@@ -2,12 +2,12 @@
 
 class Model;
 
-Entity::Entity(std::shared_ptr<Model> model) : Entity() {
+Entity::Entity(Model * model) : Entity() {
     this->id = model->getPath();
 	this->model = model;
 }
 
-Entity::Entity(std::shared_ptr<Model> model, Shader * shader) : Entity(model) {
+Entity::Entity(Model * model, Shader * shader) : Entity(model) {
     this->useShader(shader);
 }
 
