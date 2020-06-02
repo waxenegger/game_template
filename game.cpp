@@ -222,6 +222,7 @@ Game::~Game() {
 void Game::createTestModels() {
 
     glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
 
     Model * sunModel(this->factory->createModel("/res/models/sun.obj"));
     if (sunModel->hasBeenLoaded()) {
@@ -240,7 +241,7 @@ void Game::createTestModels() {
         teapotModel->useNormalsTexture(true);
         teapotModel->init();
 
-        for (int j=0;j<50;j++) {
+        for (int j=0;j<100;j++) {
             Entity * teapot = new Entity(teapotModel);
             teapot->setColor(0.0f, 0.0f, 1.0f, 1.0);
             teapot->setPosition(4.0f + 10*j, 0.0f, -15.0f);
@@ -255,7 +256,7 @@ void Game::createTestModels() {
         nanosuitModel->useNormalsTexture(true);
         nanosuitModel->init();
 
-        for (int j=0;j<50;j++) {
+        for (int j=0;j<100;j++) {
             Entity * nanosuit = new Entity(nanosuitModel);
             nanosuit->useShader(new Shader(this->root + "/res/shaders/textures"));
             nanosuit->setColor(1.0f,1.0f,1.0f,1.0f);
