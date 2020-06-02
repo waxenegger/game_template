@@ -153,7 +153,7 @@ void Game::run() {
                         break;
                     default:
                         if (SDL_GetRelativeMouseMode() == SDL_TRUE)
-                            this->camera->updateLocation(input, static_cast<float>(FIXED_DRAW_INTERVAL));
+                            this->camera->updateLocation(input, static_cast<float>(FIXED_DRAW_INTERVAL * 2.5));
                 }
                 break;
             }
@@ -228,12 +228,20 @@ void Game::createTestModels() {
     if (sunModel->hasBeenLoaded()) {
         sunModel->useNormalsTexture(false);
         sunModel->init();
-        Entity * sun = new Entity(sunModel);
-        sun->setColor(1.0f, 1.0f, 0.0f, 1.0f);
-        sun->setPosition(World::instance()->getSunDirection());
-        sun->setScaleFactor(1.0f);
 
-        this->state->addRenderable(sun);
+        glm::vec3 sunPos = World::instance()->getSunDirection();
+        for (int j=0;j<1000;j++) {
+            Entity * sun = new Entity(sunModel);
+            sun->setColor(1.0f, 1.0f, 0.0f, 1.0f);
+            sunPos.x += 20;
+            if (j % 100 == 0) {
+                sunPos.x = World::instance()->getSunDirection().x;
+                sunPos.z += 20;
+            }
+            sun->setPosition(sunPos);
+            sun->setScaleFactor(1.0f);
+            this->state->addRenderable(sun);
+        }
     }
 
     Model * teapotModel(this->factory->createModel("/res/models/teapot.obj"));
@@ -241,7 +249,7 @@ void Game::createTestModels() {
         teapotModel->useNormalsTexture(true);
         teapotModel->init();
 
-        for (int j=0;j<100;j++) {
+        for (int j=0;j<10;j++) {
             Entity * teapot = new Entity(teapotModel);
             teapot->setColor(0.0f, 0.0f, 1.0f, 1.0);
             teapot->setPosition(4.0f + 10*j, 0.0f, -15.0f);
@@ -256,7 +264,7 @@ void Game::createTestModels() {
         nanosuitModel->useNormalsTexture(true);
         nanosuitModel->init();
 
-        for (int j=0;j<100;j++) {
+        for (int j=0;j<10;j++) {
             Entity * nanosuit = new Entity(nanosuitModel);
             nanosuit->useShader(new Shader(this->root + "/res/shaders/textures"));
             nanosuit->setColor(1.0f,1.0f,1.0f,1.0f);

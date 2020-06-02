@@ -112,11 +112,17 @@ void Mesh::render(Shader * shader) {
     glVertexAttribDivisor(10, 1);
 
     glDrawElementsInstanced(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0, this->modelMatrices.size());
+
+    for (int i=2;i<11;i++) glDisableVertexAttribArray(i);
     glBindVertexArray(0);
 }
 
 void Mesh::cleanUp() {
-    for (int i=0;i<11;i++) glDisableVertexAttribArray(i);
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(11);
+    glDisableVertexAttribArray(12);
+    glDisableVertexAttribArray(13);
 
     glDeleteVertexArrays(1, &this->VAO);
 
