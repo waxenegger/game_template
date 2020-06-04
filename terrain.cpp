@@ -49,6 +49,10 @@ Terrain::Terrain(const std::string & dir) {
         }
         i++;
     }
+}
+
+void Terrain::init() {
+    this->mesh.init();
 
     this->setColor(0.0f, 1.0f, 0.0f, 1.0f);
     std::vector<Material> materials;
@@ -59,12 +63,6 @@ Terrain::Terrain(const std::string & dir) {
     std::vector<glm::mat4> modelMatrices;
     modelMatrices.push_back(this->calculateTransformationMatrix());
     this->setModelMatrices(modelMatrices);
-
-    this->initialized = true;
-}
-
-void Terrain::init() {
-    this->mesh.init();
 
     this->initialized = true;
 }
@@ -89,11 +87,11 @@ void Terrain::render() {
 }
 
 void Terrain::setMaterials(std::vector<Material> & materials) {
-    this->mesh.materials = materials;
+    this->mesh.setMaterials(materials);
 }
 
 void Terrain::setModelMatrices(std::vector<glm::mat4> & modelMatrices) {
-    this->mesh.modelMatrices = modelMatrices;
+    this->mesh.setModelMatrices(modelMatrices);
 }
 
 void Terrain::cleanUp() {

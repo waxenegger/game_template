@@ -43,7 +43,7 @@ void main() {
 	}
 
 	vec3 lightDir = normalize(sunPos - pos);
-	float diff = max(dot(normals, lightDir), 0.0);
+	float diff = max(dot(normals, lightDir), 0.1);
 
 	vec4 diffuse = vec4(diff * sunLightColor, 1.0) * diffuseColor;
 	if (has_texture_diffuse) {
@@ -53,7 +53,7 @@ void main() {
 	vec3 eyeDir = normalize(eyePos - pos);
 	vec3 halfDir = normalize(lightDir + eyeDir);
 
-	float spec = pow(max(dot(normals, halfDir), 0.0), shininess);
+	float spec = pow(max(dot(normals, halfDir), 0.1), shininess);
 	vec4 specular = vec4(spec * sunLightColor, 1) * specularColor;
 	if (has_texture_specular) {
 		specular *= texture(texture_specular, uvCoords);

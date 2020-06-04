@@ -85,6 +85,10 @@ void Game::run() {
     SDL_StartTextInput();
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
+    glPolygonMode(GL_FRONT_AND_BACK, this->wireframe ? GL_LINE : GL_FILL);
+
+    this->clearScreen(0, 0, 0, 1);
+
     this->createTestModels();
 
     while (!quit) {
@@ -137,7 +141,8 @@ void Game::run() {
                         quit = true;
                         break;
                     case 'F':
-                        this->toggleWireframe();
+                        this->wireframe = !this->wireframe;
+                        glPolygonMode(GL_FRONT_AND_BACK, this->wireframe ? GL_LINE : GL_FILL);
                         break;
                     case '+':
                         this->world->setAmbientLightFactor(this->world->getAmbientLight().x + 0.1);
@@ -173,14 +178,12 @@ void Game::clearScreen(float r, float g, float b, float a) {
 }
 
 void Game::render() {
-    glPolygonMode(GL_FRONT_AND_BACK, this->wireframe ? GL_LINE : GL_FILL);
-
     const Uint32 currentTime = SDL_GetTicks();
     const Uint32 diff = this->forceFixedFrameRate ? (currentTime - this->frameDrawn) : 0;
 
     if (diff == 0 || diff > FIXED_DRAW_INTERVAL) {
         const Uint32 frameStart = SDL_GetTicks();
-        this->clearScreen(0, 0, 0, 1);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         this->state->render();
 
@@ -194,11 +197,6 @@ void Game::render() {
 float Game::getAspectRatio() const {
     return static_cast<float>(this->width) / static_cast<float>(this->height);
 }
-
-void Game::toggleWireframe() {
-    this->wireframe = !this->wireframe;
-}
-
 
 void Game::resize(int width, int height) {
     this->width = width;
@@ -225,10 +223,7 @@ void Game::createTestModels() {
     glCullFace(GL_BACK);
 
     Model * sunModel(this->factory->createModel("/res/models/sun.obj"));
-    if (sunModel->hasBeenLoaded()) {
-        sunModel->useNormalsTexture(false);
-        sunModel->init();
-
+    if (sunModel != nullptr && sunModel->hasBeenLoaded()) {
         glm::vec3 sunPos = World::instance()->getSunDirection();
         for (int j=0;j<1000;j++) {
             Entity * sun = new Entity(sunModel);
@@ -245,10 +240,7 @@ void Game::createTestModels() {
     }
 
     Model * teapotModel(this->factory->createModel("/res/models/teapot.obj"));
-    if (teapotModel->hasBeenLoaded()) {
-        teapotModel->useNormalsTexture(true);
-        teapotModel->init();
-
+    if (teapotModel != nullptr && teapotModel->hasBeenLoaded()) {
         for (int j=0;j<10;j++) {
             Entity * teapot = new Entity(teapotModel);
             teapot->setColor(0.0f, 0.0f, 1.0f, 1.0);
@@ -260,26 +252,26 @@ void Game::createTestModels() {
     }
 
     Model * nanosuitModel(this->factory->createModel("/res/models/nanosuit.obj"));
-    if (nanosuitModel->hasBeenLoaded()) {
-        nanosuitModel->useNormalsTexture(true);
-        nanosuitModel->init();
-
+    if (nanosuitModel != nullptr && nanosuitModel->hasBeenLoaded()) {
         for (int j=0;j<10;j++) {
             Entity * nanosuit = new Entity(nanosuitModel);
             nanosuit->useShader(new Shader(this->root + "/res/shaders/textures"));
             nanosuit->setColor(1.0f,1.0f,1.0f,1.0f);
-            nanosuit->setPosition(4.0f + 10*j, 0.0f, -15.0f);
+            nanosuit->setPosition(4.0f + 10*j, 5.0f, -15.0f);
             nanosuit->setScaleFactor(1.0f);
             this->state->addRenderable(nanosuit);
         }
     }
 
-
-    Renderable * rock = this->factory->createImage("/res/models/rock.png");
-    rock->setPosition(4.0f, 0.0f, -15.0f);
-    rock->setRotation(0, -90, 0);
-    rock->setScaleFactor(2.0f);
-    this->state->addRenderable(rock);
+    for (int j=0;j<10;j++) {
+        Renderable * rock = this->factory->createImage("/res/models/rock.png");
+        if (rock->hasBeenInitialized()) {
+            rock->setPosition(25.0f + 10*j, 5.0f, 15.0f + 20*j);
+            rock->setRotation(0, 90, 0);
+            rock->setScaleFactor(2.0f);
+            this->state->addRenderable(rock);
+        }
+    }
 }
 std::map<std::string, std::shared_ptr<Texture>> Game::TEXTURES;
 

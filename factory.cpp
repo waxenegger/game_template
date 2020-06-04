@@ -8,12 +8,21 @@ Model * ModelFactory::createModel(std::string file) {
     std::string fullyQualifiedName(this->root + file);
     std::map<std::string, Model *>::iterator val(this->MODELS.find(fullyQualifiedName));
 
-    if (val != MODELS.end()) return val->second;
+    Model * ret = nullptr;
+
+    if (val != MODELS.end()) ret = val->second;
     else {
-        Model * ret = new Model(this->root, file);
-        this->MODELS[fullyQualifiedName] = ret;
-        return ret;
+        ret = new Model(this->root, file);
+        if (ret->hasBeenLoaded()) {
+            ret->init();
+            this->MODELS[fullyQualifiedName] = ret;
+        } else {
+            delete ret;
+            ret = nullptr;
+        }
     }
+
+    return ret;
 };
 
 Image * ModelFactory::createTextImage(std::string text, std::string font, int size) {

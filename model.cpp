@@ -157,11 +157,11 @@ void Model::render(Shader * shader) {
 }
 
 void Model::setMaterials(std::vector<Material> & materials) {
-    for (auto & mesh : this->meshes) mesh.materials = materials;
+    for (auto & mesh : this->meshes) mesh.setMaterials(materials);
 }
 
 void Model::setModelMatrices(std::vector<glm::mat4> & modelMatrices) {
-    for (auto & mesh : this->meshes) mesh.modelMatrices = modelMatrices;
+    for (auto & mesh : this->meshes) mesh.setModelMatrices(modelMatrices);
 }
 
 
@@ -175,7 +175,7 @@ void Model::cleanUp() {
 }
 
 void Model::useNormalsTexture(const bool flag) {
-    for (auto & mesh : this->meshes) mesh.useNormalsTexture = flag;
+    for (auto & mesh : this->meshes) mesh.setUseNormalsTexture(flag);
 }
 
 const std::string Model::AMBIENT_TEXTURE = "texture_ambient";

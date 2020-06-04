@@ -38,7 +38,6 @@ class Game {
         bool init();
         void run();
         float getAspectRatio() const;
-        void toggleWireframe();
         void resize(int width, int height);
         float getLastFrameDuration() const;
         virtual ~Game();

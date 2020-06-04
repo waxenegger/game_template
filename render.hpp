@@ -13,12 +13,15 @@ static const std::string DEFAULT_VERTEX_SHADER =
         "#version 330 core\n"
         "layout (location = 0) in vec3 position;\n"
         "layout (location = 1) in vec3 normal;\n"
-        "layout (location = 2) in mat4 model;\n"
-        "layout (location = 6) in vec4 emissiveMaterial;\n"
-        "layout (location = 7) in vec4 ambientMaterial;\n"
-        "layout (location = 8) in vec4 diffuseMaterial;\n"
-        "layout (location = 9) in vec4 specularMaterial;\n"
-        "layout (location = 10) in float shininessMaterial;\n"
+        "layout (location = 2) in vec2 uvs;\n"
+        "layout (location = 3) in vec3 tangent;\n"
+        "layout (location = 4) in vec3 bitangent;\n"
+        "layout (location = 5) in mat4 model;\n"
+        "layout (location = 9) in vec4 emissiveMaterial;\n"
+        "layout (location = 10) in vec4 ambientMaterial;\n"
+        "layout (location = 11) in vec4 diffuseMaterial;\n"
+        "layout (location = 12) in vec4 specularMaterial;\n"
+        "layout (location = 13) in float shininessMaterial;\n"
         "uniform mat4 view;\n"
         "uniform mat4 projection;\n"
         "out vec3 norm;\n"
@@ -56,11 +59,11 @@ static const std::string DEFAULT_FRAGMENT_SHADER =
         "    vec4 emission = emissiveColor * vec4(ambientLight, 1.0);\n"
         "    vec4 ambience = vec4(ambientLight,1) * ambientColor;\n"
         "    vec3 lightDir = normalize(sunDirection - pos);\n"
-        "    float diff = max(dot(norm, lightDir), 0.0);\n"
+        "    float diff = max(dot(norm, lightDir), 0.1);\n"
         "    vec4 diffuse = vec4(diff * sunLightColor, 1.0) * diffuseColor;\n"
         "    vec3 eyeDir = normalize(eyePosition - pos);\n"
         "    vec3 halfDir = normalize(lightDir + eyeDir);\n"
-        "    float spec = pow(max(dot(norm, halfDir), 0.0), shininess);\n"
+        "    float spec = pow(max(dot(norm, halfDir), 0.1), shininess);\n"
         "    vec4 specular = vec4(spec * sunLightColor, 1) * specularColor;\n"
         "    fragColor = emission + ambience + diffuse + specular;\n"
         "}";
@@ -71,7 +74,7 @@ class Material {
         glm::vec4 ambientColor = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f);
         glm::vec4 emissiveColor = glm::vec4(0.1f, 0.1f, 0.1f,1.0f);
         glm::vec4 diffuseColor = glm::vec4(1.0f, 1.0f,1.0f, 1.0f);
-        glm::vec4 specularColor = glm::vec4(0.2f,0.2f,0.2f,1.0f);
+        glm::vec4 specularColor = glm::vec4(0.3f,0.3f,0.3f,1.0f);
         float shininess = 1.0f;
         Material() {};
 };
@@ -205,18 +208,21 @@ class Texture {
 };
 
 class Mesh {
-    public:
+    private:
         GLuint VAO = 0, VBO = 0, EBO = 0;
-
-        std::vector<Vertex> vertices;
-        std::vector<unsigned int> indices;
-        std::vector<std::shared_ptr<Texture>> textures;
-
         GLuint MODEL_MATRIX = 0, MATERIALS = 0;
+
         std::vector<glm::mat4> modelMatrices;
         std::vector<Material> materials;
 
+        bool modelMatricesEnabled = false;
+        bool materialsEnabled = false;
         bool useNormalsTexture = true;
+
+        std::vector<std::shared_ptr<Texture>> textures;
+    public:
+        std::vector<Vertex> vertices;
+        std::vector<unsigned int> indices;
 
         Mesh() {};
         Mesh(std::vector<Vertex> & vertices, std::vector<unsigned int> & indices, std::vector<std::shared_ptr<Texture>> & textures) {
@@ -225,7 +231,13 @@ class Mesh {
             this->textures = textures;
         }
         void init();
+        void setModelMatrices(std::vector<glm::mat4> & modelMatrices);
+        void setMaterials(std::vector<Material> & materials);
         void render(Shader * shader);
+        void setUseNormalsTexture(bool useNormalsTexture) {
+          this->useNormalsTexture = useNormalsTexture;
+        };
+
         void cleanUp();
 };
 

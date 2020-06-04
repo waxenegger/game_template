@@ -134,11 +134,11 @@ void Image::render() {
 }
 
 void Image::setMaterials(std::vector<Material> & materials) {
-    this->mesh.materials = materials;
+    this->mesh.setMaterials(materials);
 }
 
 void Image::setModelMatrices(std::vector<glm::mat4> & modelMatrices) {
-    this->mesh.modelMatrices = modelMatrices;
+    this->mesh.setModelMatrices(modelMatrices);
 }
 
 void Image::cleanUp() {
