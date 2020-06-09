@@ -243,7 +243,7 @@ void Game::createTestModels() {
     if (teapotModel != nullptr && teapotModel->hasBeenLoaded()) {
         for (int j=0;j<10;j++) {
             Entity * teapot = new Entity(teapotModel);
-            teapot->setColor(0.0f, 0.0f, 1.0f, 1.0);
+            teapot->setColor(1.0f, 1.0f, 1.0f, 1.0);
             teapot->setPosition(4.0f + 10*j, 0.0f, -15.0f);
             teapot->setRotation(0, -90, 0);
             teapot->setScaleFactor(2.0f);
@@ -258,20 +258,32 @@ void Game::createTestModels() {
             nanosuit->useShader(new Shader(this->root + "/res/shaders/textures"));
             nanosuit->setColor(1.0f,1.0f,1.0f,1.0f);
             nanosuit->setPosition(4.0f + 10*j, 5.0f, -15.0f);
-            nanosuit->setScaleFactor(1.0f);
+            nanosuit->setScaleFactor(2.0f);
             this->state->addRenderable(nanosuit);
         }
     }
 
-    for (int j=0;j<10;j++) {
+    for (int j=0;j<1;j++) {
         Renderable * rock = this->factory->createImage("/res/models/rock.png");
         if (rock->hasBeenInitialized()) {
-            rock->setPosition(25.0f + 10*j, 5.0f, 15.0f + 20*j);
+            rock->setPosition(25.0f + 10*j, 5.0f, -5.0f + 20*j);
             rock->setRotation(0, 90, 0);
-            rock->setScaleFactor(2.0f);
+            rock->setScaleFactor(0.01f);
             this->state->addRenderable(rock);
         }
     }
+
+    for (int j=0;j<1;j++) {
+        Renderable * sign = this->factory->createTextImage("Hello Sign", "FreeMono.ttf",50);
+        if (sign->hasBeenInitialized()) {
+            sign->setPosition(-25.0f + 10*j, 5.0f, -15.0f);
+            sign->setColor(1.0f,1.0f,1.0f,1.0f);
+            sign->setRotation(0, -90, 0);
+            sign->setScaleFactor(0.05f);
+            this->state->addRenderable(sign);
+        }
+    }
+
 }
 std::map<std::string, std::shared_ptr<Texture>> Game::TEXTURES;
 

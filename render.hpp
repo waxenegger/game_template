@@ -409,7 +409,9 @@ class Image : public Renderable {
         unsigned int textureId = 0;
         Mesh mesh;
         SDL_Surface * image = nullptr;
+        std::string text = "";
         Image() {};
+        ~Image();
         void init();
         std::string id = this->generateRendarableID();
     public:

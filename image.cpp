@@ -30,14 +30,28 @@ Image * Image::fromFile(std::string file) {
 Image * Image::fromText(std::string fontFile, std::string text, int size) {
     Image * img = new Image();
 
-    TTF_Font * font = TTF_OpenFont(fontFile.c_str(), 80);
+    if (text.size() == 0) return img;
+
+    img->text = text;
+
+    TTF_Font * font = TTF_OpenFont(fontFile.c_str(), size);
 
     if (font != nullptr) {
         TTF_SetFontStyle(font, TTF_STYLE_NORMAL);
-        const SDL_Color fg = { 255, 255, 255};
+        const SDL_Color bg = { 255, 255, 255 };
+        const SDL_Color fg = { 0, 0, 0 };
 
-        img->image = TTF_RenderText_Blended(font, text.c_str(), fg);
-        if (img->image != nullptr) img->init();
+        SDL_Surface * tmp = TTF_RenderUTF8_Shaded(font, text.c_str(), fg, bg);
+        if (tmp != nullptr) {
+
+            SDL_PixelFormat *format = SDL_AllocFormat(SDL_PIXELFORMAT_ARGB8888);
+            img->image = SDL_ConvertSurface(tmp, format, 0);
+
+            SDL_FreeFormat(format);
+            SDL_FreeSurface(tmp);
+
+            img->init();
+        }
 
         TTF_CloseFont(font);
     }
@@ -55,8 +69,8 @@ void Image::init() {
     }
 
     const float zDirNormal = -1.0f;
-    const float w = 10.0f;
-    const float h = 10.0f;
+    const float w = this->image->w;
+    const float h = this->image->h;
 
     Vertex one(glm::vec3(0.0f, h, 0.0f));
     one.uv = glm::vec2(1.0f, 0.0f);
@@ -97,9 +111,9 @@ void Image::init() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this->image->w, this->image->h, 0, imageFormat,
-            GL_UNSIGNED_BYTE, this->image->pixels);
-    glGenerateMipmap(GL_TEXTURE_2D);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this->image->w, this->image->h, 0,
+                    imageFormat, GL_UNSIGNED_BYTE, this->image->pixels);
+    //glGenerateMipmap(GL_TEXTURE_2D);
 
     this->mesh.init();
 
@@ -111,6 +125,7 @@ void Image::render() {
 
     this->shader->use();
     if (this->shader->isBeingUsed()) {
+
         this->shader->setMat4("view", Camera::instance()->getViewMatrix());
         this->shader->setMat4("projection", Camera::instance()->getPerspective());
 
@@ -129,6 +144,7 @@ void Image::render() {
         this->shader->setInt(Model::DIFFUSE_TEXTURE, 0);
 
         this->mesh.render(this->shader);
+
         this->shader->stopUse();
     }
 }
@@ -144,4 +160,11 @@ void Image::setModelMatrices(std::vector<glm::mat4> & modelMatrices) {
 void Image::cleanUp() {
     glDeleteTextures(1, &this->textureId);
     this->mesh.cleanUp();
+}
+
+Image::~Image() {
+    if (this->text.size() != 0 && this->image != nullptr) {
+        SDL_FreeSurface(this->image);
+        this->image = nullptr;
+    }
 }

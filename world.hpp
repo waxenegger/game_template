@@ -12,7 +12,7 @@
         const glm::vec3 DEFAULT_AMBIENT_LIGHT_COLOR = glm::vec3(1.0f);
 
         glm::vec3 ambientLight = DEFAULT_AMBIENT_LIGHT_COLOR;
-        glm::vec3 sunDirection = glm::vec3(20.0f, 30.0f, -15.0f);
+        glm::vec3 sunDirection = glm::vec3(20.0f, 100.0f, 15.0f);
         glm::vec3 sunLightColor = DEFAULT_SUNLIGHT_COLOR;
 
         World();
