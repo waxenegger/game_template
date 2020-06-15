@@ -11,9 +11,12 @@
     #include <ctype.h>
     #include <memory>
     #include <vector>
+    #include <set>
     #include <map>
     #include <time.h>
     #include <random>
+    #include <thread>
+    #include <mutex>
 
     #include <SDL.h>
     #include <SDL_image.h>

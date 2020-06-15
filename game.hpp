@@ -18,6 +18,11 @@ class Game {
 
         bool wireframe = false;
 
+        std::mutex keyMutex;
+        std::set<SDL_Scancode> keys;
+
+        bool quit = false;
+
         GameState * state = nullptr;
 
         SDL_Window * window = nullptr;
@@ -43,6 +48,9 @@ class Game {
         virtual ~Game();
         void createTestModels();
 
+        void addKeyEvent(const SDL_Scancode key);
+        void removeKeyEvent(const SDL_Scancode key, const bool lock = true);
+        void processEvents();
         static std::map<std::string, std::shared_ptr<Texture>> TEXTURES;
 };
 

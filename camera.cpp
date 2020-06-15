@@ -53,9 +53,8 @@ void Camera::updateDirection(const float deltaX, const float  deltaY, const floa
 
 }
 
-void Camera::updateLocation(const char direction, const float frameDuration) {
-    if (direction != 'A' && direction != 'W' &&
-            direction != 'D' && direction != 'S') return;
+void Camera::updateLocation(const SDL_Scancode & direction, const float frameDuration) {
+    if (direction != SDL_SCANCODE_A && direction != SDL_SCANCODE_W && direction != SDL_SCANCODE_D && direction != SDL_SCANCODE_S) return;
 
     const float speedFactor = SENSITIVITY_POSITION_CHANGE * frameDuration;
 
@@ -69,23 +68,50 @@ void Camera::updateLocation(const char direction, const float frameDuration) {
     float deltaYMove = glm::sin(this->yaw - glm::pi<float>() / 2);
 
     switch(direction) {
-        case 'W':
+        case SDL_SCANCODE_W:
             this->position.x += deltaXRot * speedFactor;
             this->position.z += deltaYRot * speedFactor;
             break;
-        case 'S':
+        case SDL_SCANCODE_S:
             this->position.x -= deltaXRot * speedFactor;
             this->position.z -= deltaYRot * speedFactor;
             break;
-        case 'A':
+        case SDL_SCANCODE_A:
             this->position.x += deltaXMove * speedFactor;
             this->position.z += deltaYMove * speedFactor;
             break;
-        case 'D':
+        case SDL_SCANCODE_D:
             this->position.x -= deltaXMove * speedFactor;
             this->position.z -= deltaYMove * speedFactor;
             break;
+        default:
+            break;
     }
+}
+
+void Camera::startJumpFrameCounter() {
+    this->jumpFrameCounter = 1;
+}
+
+void Camera::setJumpFrameCounter(const int jumpFrameCounter) {
+    this->jumpFrameCounter = jumpFrameCounter;
+}
+
+void Camera::updateYlocation() {
+    if (this->jumpFrameCounter > 0) this->position.y += this->JUMP_ANGLE * this->jumpFrameCounter;
+
+    if (World::instance()->hasGravity())
+        this->position.y -= World::GRAVITY_PER_FRAME * static_cast<float>(glm::pow(this->jumpFrameCounter, 2));
+    else this->jumpFrameCounter = -1;
+
+    if (this->position.y < 7.0f) {
+        this->position.y = 7.0f;
+        this->jumpFrameCounter = -1;
+    } else if (World::instance()->hasGravity() && this->jumpFrameCounter > 0) this->jumpFrameCounter++;
+}
+
+bool Camera::isOffGround() {
+    return this->jumpFrameCounter > 0;
 }
 
 glm::mat4 Camera::getViewMatrix() {

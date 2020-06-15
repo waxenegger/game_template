@@ -11,12 +11,17 @@
         const glm::vec3 DEFAULT_SUNLIGHT_COLOR = glm::vec3(1.0f);
         const glm::vec3 DEFAULT_AMBIENT_LIGHT_COLOR = glm::vec3(1.0f);
 
+        bool gravity = true;
+
         glm::vec3 ambientLight = DEFAULT_AMBIENT_LIGHT_COLOR;
         glm::vec3 sunDirection = glm::vec3(20.0f, 100.0f, 15.0f);
         glm::vec3 sunLightColor = DEFAULT_SUNLIGHT_COLOR;
 
         World();
     public:
+        static constexpr float GRAVITY_PER_FRAME = 0.04f;
+        void toggleGravity();
+        bool hasGravity();
         void setAmbientLightFactor(const float ambientLightFactor);
         void setSunLightStrength(const float sunLightStrength);
         glm::vec3 getAmbientLight();

@@ -78,103 +78,82 @@ bool Game::init() {
 }
 
 void Game::run() {
-    bool quit = false;
-
-    SDL_Event e;
-
-    SDL_StartTextInput();
     SDL_SetRelativeMouseMode(SDL_TRUE);
-
     glPolygonMode(GL_FRONT_AND_BACK, this->wireframe ? GL_LINE : GL_FILL);
 
     this->clearScreen(0, 0, 0, 1);
 
     this->createTestModels();
 
-    while (!quit) {
+    std::thread eventLoop([this]() {
+        SDL_Event e;
 
-        while (SDL_PollEvent(&e) != 0) {
-            switch(e.type) {
+        SDL_StartTextInput();
 
-            case SDL_MOUSEBUTTONUP:
-                SDL_SetRelativeMouseMode(SDL_GetRelativeMouseMode() == SDL_TRUE ? SDL_FALSE : SDL_TRUE);
-                break;
+        while (!this->quit) {
+            while (SDL_PollEvent(&e) != 0) {
+                switch(e.type) {
+                    case SDL_MOUSEBUTTONUP:
+                        SDL_SetRelativeMouseMode(SDL_GetRelativeMouseMode() == SDL_TRUE ? SDL_FALSE : SDL_TRUE);
+                        break;
 
-            case SDL_MOUSEMOTION:
-                if (SDL_GetRelativeMouseMode() == SDL_TRUE)
-                    this->camera->updateDirection(
-                            static_cast<float>(e.motion.xrel),
-                            static_cast<float>(e.motion.yrel),
-                            static_cast<float>(FIXED_DRAW_INTERVAL));
-                break;
+                    case SDL_MOUSEMOTION:
+                        if (SDL_GetRelativeMouseMode() == SDL_TRUE)
+                            this->camera->updateDirection(
+                                    static_cast<float>(e.motion.xrel),
+                                    static_cast<float>(e.motion.yrel),
+                                    static_cast<float>(FIXED_DRAW_INTERVAL));
+                        break;
 
-            case SDL_MOUSEWHEEL:
-            {
-                const Sint32 delta = e.wheel.y * (e.wheel.direction == SDL_MOUSEWHEEL_NORMAL ? 1 : -1);
-                float newFovy = this->camera->getFieldOfViewY() - delta * 2;
-                if (newFovy < 1) newFovy = 1;
-                else if (newFovy > 45) newFovy = 45;
-                this->camera->setFieldOfViewY(newFovy);
-                this->camera->setPerspective(
-                        glm::perspective(glm::radians(this->camera->getFieldOfViewY()),
-                                this->getAspectRatio(), 0.01f, 1000.0f));
-                break;
-            }
-            case SDL_WINDOWEVENT:
-                if(e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
-                    this->resize(e.window.data1, e.window.data2);
-                    this->camera->setPerspective(
-                            glm::perspective(glm::radians(this->camera->getFieldOfViewY()),
-                                    this->getAspectRatio(), 0.01f, 1000.0f));
-                }
-                break;
+                    case SDL_MOUSEWHEEL:
+                    {
+                        const Sint32 delta = e.wheel.y * (e.wheel.direction == SDL_MOUSEWHEEL_NORMAL ? 1 : -1);
+                        float newFovy = this->camera->getFieldOfViewY() - delta * 2;
+                        if (newFovy < 1) newFovy = 1;
+                        else if (newFovy > 45) newFovy = 45;
+                        this->camera->setFieldOfViewY(newFovy);
+                        this->camera->setPerspective(
+                                glm::perspective(glm::radians(this->camera->getFieldOfViewY()),
+                                        this->getAspectRatio(), 0.01f, 1000.0f));
+                        break;
+                    }
+                    case SDL_WINDOWEVENT:
+                        if(e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+                            this->resize(e.window.data1, e.window.data2);
+                            this->camera->setPerspective(
+                                    glm::perspective(glm::radians(this->camera->getFieldOfViewY()),
+                                            this->getAspectRatio(), 0.01f, 1000.0f));
+                        }
+                        break;
 
-            case SDL_QUIT:
-                quit = true;
-                break;
-
-            case SDL_TEXTINPUT:
-                char input = toupper(e.text.text[0]);
-
-                switch (input) {
-                    case 'Q':
+                    case SDL_QUIT:
                         quit = true;
                         break;
-                    case 'F':
-                        this->wireframe = !this->wireframe;
-                        glPolygonMode(GL_FRONT_AND_BACK, this->wireframe ? GL_LINE : GL_FILL);
+
+                    case SDL_KEYDOWN:
+                        this->addKeyEvent(e.key.keysym.scancode);
                         break;
-                    case '+':
-                        this->world->setAmbientLightFactor(this->world->getAmbientLight().x + 0.1);
+
+                    case SDL_KEYUP:
+                        this->removeKeyEvent(e.key.keysym.scancode);
                         break;
-                    case '-':
-                        this->world->setAmbientLightFactor(this->world->getAmbientLight().x - 0.1);
-                        break;
-                    case '*':
-                        this->world->setSunLightStrength(this->world->getSunLightColor().x + 0.1);
-                        break;
-                    case '/':
-                        this->world->setSunLightStrength(this->world->getSunLightColor().x - 0.1);
-                        break;
-                    default:
-                        if (SDL_GetRelativeMouseMode() == SDL_TRUE)
-                            this->camera->updateLocation(input, static_cast<float>(FIXED_DRAW_INTERVAL * 2.5));
                 }
-                break;
             }
         }
 
-        this->render();
-    }
+        SDL_StopTextInput();
+    });
 
-    SDL_StopTextInput();
+    while (!quit) this->render();
+
+    eventLoop.join();
 }
 
 void Game::clearScreen(float r, float g, float b, float a) {
+    glViewport(0,0,(GLsizei)this->width,(GLsizei)this->height);
     glClearColor(r, g, b, a);
     glClearDepthf(1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glViewport(0,0,(GLsizei)this->width,(GLsizei)this->height);
 }
 
 void Game::render() {
@@ -183,7 +162,12 @@ void Game::render() {
 
     if (diff == 0 || diff > FIXED_DRAW_INTERVAL) {
         const Uint32 frameStart = SDL_GetTicks();
+        glViewport(0,0,(GLsizei)this->width,(GLsizei)this->height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        this->processEvents();
+
+        this->camera->updateYlocation();
 
         this->state->render();
 
@@ -192,6 +176,63 @@ void Game::render() {
         this->frameDrawn = SDL_GetTicks();
         this->frameDuration = this->frameDrawn - frameStart;
     }
+}
+
+void Game::addKeyEvent(const SDL_Scancode key) {
+    std::unique_lock<std::mutex> lock(this->keyMutex);
+    this->keys.insert(key);
+}
+
+void Game::removeKeyEvent(const SDL_Scancode key, const bool lock) {
+    if (lock) std::unique_lock<std::mutex> lock(this->keyMutex);
+    for(auto it = this->keys.begin(); it != this->keys.end(); ) {
+            if(*it == key) it = this->keys.erase(it);
+            else ++it;
+    }
+}
+
+void Game::processEvents() {
+    std::unique_lock<std::mutex> lock(this->keyMutex);
+
+    SDL_Scancode toBeRemoved = SDL_SCANCODE_UNKNOWN;
+    for (auto k : this->keys) {
+        switch (k) {
+            case SDL_SCANCODE_G:
+                toBeRemoved = SDL_SCANCODE_G;
+                this->world->toggleGravity();
+                this->camera->setJumpFrameCounter(-4);
+                break;
+            case SDL_SCANCODE_Q:
+                this->quit = true;
+                break;
+            case SDL_SCANCODE_F:
+                toBeRemoved = SDL_SCANCODE_F;
+                this->wireframe = !this->wireframe;
+                glPolygonMode(GL_FRONT_AND_BACK, this->wireframe ? GL_LINE : GL_FILL);
+                break;
+            case SDL_SCANCODE_KP_PLUS:
+                this->world->setAmbientLightFactor(this->world->getAmbientLight().x + 0.1);
+                break;
+            case SDL_SCANCODE_KP_MINUS:
+                this->world->setAmbientLightFactor(this->world->getAmbientLight().x - 0.1);
+                break;
+            case SDL_SCANCODE_KP_MULTIPLY:
+                this->world->setSunLightStrength(this->world->getSunLightColor().x + 0.1);
+                break;
+            case SDL_SCANCODE_KP_DIVIDE:
+                this->world->setSunLightStrength(this->world->getSunLightColor().x - 0.1);
+                break;
+            case SDL_SCANCODE_SPACE:
+                if (!this->world->hasGravity() || !this->camera->isOffGround())
+                    this->camera->startJumpFrameCounter();
+                break;
+            default:
+                if (SDL_GetRelativeMouseMode() == SDL_TRUE)
+                    this->camera->updateLocation(k, static_cast<float>(FIXED_DRAW_INTERVAL * 2.5));
+        }
+    }
+
+    if (toBeRemoved != SDL_SCANCODE_UNKNOWN) this->removeKeyEvent(toBeRemoved, false);
 }
 
 float Game::getAspectRatio() const {
@@ -203,6 +244,7 @@ void Game::resize(int width, int height) {
     this->height = height;
 
     glViewport(0,0,(GLsizei)this->width,(GLsizei)this->height);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 float Game::getLastFrameDuration() const {
@@ -274,7 +316,7 @@ void Game::createTestModels() {
     }
 
     for (int j=0;j<1;j++) {
-        Renderable * sign = this->factory->createTextImage("Hello Sign", "FreeMono.ttf",50);
+        Renderable * sign = this->factory->createTextImage("Go here +++++++> to T Pot", "FreeMono.ttf",50);
         if (sign->hasBeenInitialized()) {
             sign->setPosition(-25.0f + 10*j, 5.0f, -15.0f);
             sign->setColor(1.0f,1.0f,1.0f,1.0f);

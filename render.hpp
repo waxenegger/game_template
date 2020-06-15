@@ -460,6 +460,9 @@ class Camera final {
         const float SENSITIVITY_DIRECTION_CHANGE = 0.0005f;
         const float SENSITIVITY_POSITION_CHANGE = 0.05f;
 
+        const float JUMP_ANGLE = glm::sin(glm::radians(45.0f));
+        int jumpFrameCounter = -1;
+
         float pitch = glm::asin(1);
         float yaw = glm::atan(0.0f, 0.0f);
         float fovy = 45.0f;
@@ -474,6 +477,9 @@ class Camera final {
         Camera() {};
         Camera(const float x, const float y, const float z);
     public:
+        void startJumpFrameCounter();
+        void setJumpFrameCounter(const int jumpFrameCounter);
+        bool isOffGround();
         void setPosition(const float x, const float y, const float z);
         glm::vec3 getPosition();
         void setDirection(const float x, const float y, const float z);
@@ -482,7 +488,8 @@ class Camera final {
         glm::mat4 getPerspective();
         void updateDirection(const float deltaX, const float deltaY,
                 const float frameDuration);
-        void updateLocation(const char direction, const float frameDuration);
+        void updateLocation(const SDL_Scancode & direction, const float frameDuration);
+        void updateYlocation();
         glm::mat4 getViewMatrix();
         float getFieldOfViewY();
         void setFieldOfViewY(const float fovy);

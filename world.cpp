@@ -27,6 +27,14 @@ glm::vec3 World::getSunDirection() {
     return this->sunDirection;
 };
 
+void World::toggleGravity() {
+    this->gravity = !this->gravity;
+}
+
+bool World::hasGravity() {
+    return this->gravity;
+}
+
 World * World::instance() {
     if (World::singleton == nullptr) World::singleton = new World();
     return World::singleton;

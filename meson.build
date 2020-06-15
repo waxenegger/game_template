@@ -10,6 +10,8 @@ WINDOWS_KITS = 'C:\\Program Files (x86)\\Windows Kits\\10\\Lib\\10.0.18362.0\\um
 includeDir = []
 dependencies = []
 
+threadDep = dependency('threads', required: true)
+
 sdlDep = dependency('SDL2', required: false)
 
 if sdlDep.found()
@@ -17,7 +19,7 @@ if sdlDep.found()
    sdlFontDep = dependency('SDL2_ttf')
    glewDep = dependency('glew')
    assimpDep = dependency('assimp')
-   dependencies = [sdlDep, sdlImageDep, sdlFontDep, glewDep, assimpDep]
+   dependencies = [threadDep, sdlDep, sdlImageDep, sdlFontDep, glewDep, assimpDep]
 else
    openGlDepWin = meson.get_compiler('cpp').find_library('OpenGL32', dirs: [WINDOWS_KITS])
    sdlIncDir = join_paths(WINDOWS_SDL_PATH, 'include')
@@ -37,7 +39,7 @@ else
    glewDepWin = meson.get_compiler('cpp').find_library('glew32', dirs: [glewLibDir])
    assimpDepWin = meson.get_compiler('cpp').find_library('assimp-vc141-mtd', dirs: [assimpLibDir])
 
-   dependencies = [openGlDepWin, sdlDepWin, sdlDep2Win, sdlImageDepWin, sdlFontDepWin, glewDepWin, assimpDepWin]
+   dependencies = [threadDep, openGlDepWin, sdlDepWin, sdlDep2Win, sdlImageDepWin, sdlFontDepWin, glewDepWin, assimpDepWin]
    includeDir = [sdlIncDir, sdlImageIncDir, sdlFontIncDir, glewIncDir, assimpIncDir]
 
 endif
