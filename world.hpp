@@ -19,7 +19,6 @@
 
         World();
     public:
-        static constexpr float GRAVITY_PER_FRAME = 0.04f;
         void toggleGravity();
         bool hasGravity();
         void setAmbientLightFactor(const float ambientLightFactor);

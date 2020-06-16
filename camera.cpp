@@ -97,11 +97,11 @@ void Camera::setJumpFrameCounter(const int jumpFrameCounter) {
     this->jumpFrameCounter = jumpFrameCounter;
 }
 
-void Camera::updateYlocation() {
-    if (this->jumpFrameCounter > 0) this->position.y += this->JUMP_ANGLE * this->jumpFrameCounter;
+void Camera::updateYlocation(const float frameDuration) {
+    if (this->jumpFrameCounter > 0) this->position.y += frameDuration  * JUMP_FACTOR * this->jumpFrameCounter;
 
     if (World::instance()->hasGravity())
-        this->position.y -= World::GRAVITY_PER_FRAME * static_cast<float>(glm::pow(this->jumpFrameCounter, 2));
+        this->position.y -= frameDuration * GRAVITY * static_cast<float>(glm::pow(this->jumpFrameCounter, 2));
     else this->jumpFrameCounter = -1;
 
     if (this->position.y < 7.0f) {

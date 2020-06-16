@@ -18,8 +18,7 @@ class Game {
 
         bool wireframe = false;
 
-        std::mutex keyMutex;
-        std::set<SDL_Scancode> keys;
+        std::map<SDL_Scancode, std::atomic<int> *> keys;
 
         bool quit = false;
 
@@ -49,7 +48,7 @@ class Game {
         void createTestModels();
 
         void addKeyEvent(const SDL_Scancode key);
-        void removeKeyEvent(const SDL_Scancode key, const bool lock = true);
+        void removeKeyEvent(const SDL_Scancode key);
         void processEvents();
         static std::map<std::string, std::shared_ptr<Texture>> TEXTURES;
 };

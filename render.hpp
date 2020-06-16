@@ -6,7 +6,11 @@
 
 static const int DEFAULT_WIDTH = 640;
 static const int DEFAULT_HEIGHT = 480;
+
 static const Uint32 FIXED_DRAW_INTERVAL = 17;
+
+static const float JUMP_FACTOR = 0.1;
+static const float GRAVITY = 0.01f;
 
 static const int NUM_SHADERS = 2;
 static const std::string DEFAULT_VERTEX_SHADER =
@@ -460,7 +464,6 @@ class Camera final {
         const float SENSITIVITY_DIRECTION_CHANGE = 0.0005f;
         const float SENSITIVITY_POSITION_CHANGE = 0.05f;
 
-        const float JUMP_ANGLE = glm::sin(glm::radians(45.0f));
         int jumpFrameCounter = -1;
 
         float pitch = glm::asin(1);
@@ -489,7 +492,7 @@ class Camera final {
         void updateDirection(const float deltaX, const float deltaY,
                 const float frameDuration);
         void updateLocation(const SDL_Scancode & direction, const float frameDuration);
-        void updateYlocation();
+        void updateYlocation(const float frameDuration);
         glm::mat4 getViewMatrix();
         float getFieldOfViewY();
         void setFieldOfViewY(const float fovy);

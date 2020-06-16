@@ -167,7 +167,7 @@ void Game::render() {
 
         this->processEvents();
 
-        this->camera->updateYlocation();
+        this->camera->updateYlocation(this->forceFixedFrameRate ? this->frameDuration : FIXED_DRAW_INTERVAL);
 
         this->state->render();
 
@@ -179,36 +179,39 @@ void Game::render() {
 }
 
 void Game::addKeyEvent(const SDL_Scancode key) {
-    std::unique_lock<std::mutex> lock(this->keyMutex);
-    this->keys.insert(key);
+    std::map<SDL_Scancode, std::atomic<int> *>::iterator hit(this->keys.find(key));
+
+    if (hit == this->keys.end())
+        this->keys[key] =  std::move(new std::atomic<int>(1));
+    else hit->second->fetch_add(1);
 }
 
-void Game::removeKeyEvent(const SDL_Scancode key, const bool lock) {
-    if (lock) std::unique_lock<std::mutex> lock(this->keyMutex);
-    for(auto it = this->keys.begin(); it != this->keys.end(); ) {
-            if(*it == key) it = this->keys.erase(it);
-            else ++it;
-    }
+void Game::removeKeyEvent(const SDL_Scancode key) {
+    std::map<SDL_Scancode, std::atomic<int> *>::iterator hit(this->keys.find(key));
+    if (hit != this->keys.end()) *hit->second = 0;
 }
 
 void Game::processEvents() {
-    std::unique_lock<std::mutex> lock(this->keyMutex);
+    for (auto & k : this->keys) {
+        if (*k.second == 0) continue;
 
-    SDL_Scancode toBeRemoved = SDL_SCANCODE_UNKNOWN;
-    for (auto k : this->keys) {
-        switch (k) {
+        switch (k.first) {
             case SDL_SCANCODE_G:
-                toBeRemoved = SDL_SCANCODE_G;
-                this->world->toggleGravity();
-                this->camera->setJumpFrameCounter(-4);
+                if (*k.second == 1) {
+                    k.second->fetch_add(1);
+                    this->world->toggleGravity();
+                    this->camera->setJumpFrameCounter(-4);
+                };
                 break;
             case SDL_SCANCODE_Q:
                 this->quit = true;
                 break;
             case SDL_SCANCODE_F:
-                toBeRemoved = SDL_SCANCODE_F;
-                this->wireframe = !this->wireframe;
-                glPolygonMode(GL_FRONT_AND_BACK, this->wireframe ? GL_LINE : GL_FILL);
+                if (*k.second == 1) {
+                    k.second->fetch_add(1);
+                    this->wireframe = !this->wireframe;
+                    glPolygonMode(GL_FRONT_AND_BACK, this->wireframe ? GL_LINE : GL_FILL);
+                }
                 break;
             case SDL_SCANCODE_KP_PLUS:
                 this->world->setAmbientLightFactor(this->world->getAmbientLight().x + 0.1);
@@ -223,16 +226,17 @@ void Game::processEvents() {
                 this->world->setSunLightStrength(this->world->getSunLightColor().x - 0.1);
                 break;
             case SDL_SCANCODE_SPACE:
-                if (!this->world->hasGravity() || !this->camera->isOffGround())
-                    this->camera->startJumpFrameCounter();
+                if (*k.second == 1) {
+                    k.second->fetch_add(1);
+                    if (!this->world->hasGravity() || !this->camera->isOffGround())
+                        this->camera->startJumpFrameCounter();
+                };
                 break;
             default:
                 if (SDL_GetRelativeMouseMode() == SDL_TRUE)
-                    this->camera->updateLocation(k, static_cast<float>(FIXED_DRAW_INTERVAL * 2.5));
+                    this->camera->updateLocation(k.first, static_cast<float>(FIXED_DRAW_INTERVAL * 2.5));
         }
     }
-
-    if (toBeRemoved != SDL_SCANCODE_UNKNOWN) this->removeKeyEvent(toBeRemoved, false);
 }
 
 float Game::getAspectRatio() const {
@@ -256,6 +260,10 @@ Game::~Game() {
     if (this->world != nullptr) delete this->world;
     if (this->factory != nullptr) delete this->factory;
     if (this->state != nullptr) delete this->state;
+
+    for (auto & k : this->keys) delete k.second;
+    this->keys.clear();
+
     cleanUp();
 }
 

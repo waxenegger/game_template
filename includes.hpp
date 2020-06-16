@@ -17,6 +17,7 @@
     #include <random>
     #include <thread>
     #include <mutex>
+    #include <atomic>
 
     #include <SDL.h>
     #include <SDL_image.h>
