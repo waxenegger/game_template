@@ -135,7 +135,7 @@ void Game::run() {
                         break;
 
                     case SDL_KEYUP:
-                        this->removeKeyEvent(e.key.keysym.scancode);
+                        this->removeKeyEvent(e.key.keysym.scancode, true);
                         break;
                 }
             }
@@ -160,14 +160,14 @@ void Game::render() {
     const Uint32 currentTime = SDL_GetTicks();
     const Uint32 diff = this->forceFixedFrameRate ? (currentTime - this->frameDrawn) : 0;
 
+    this->processEvents();
+
     if (diff == 0 || diff > FIXED_DRAW_INTERVAL) {
         const Uint32 frameStart = SDL_GetTicks();
         glViewport(0,0,(GLsizei)this->width,(GLsizei)this->height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        this->processEvents();
-
-        this->camera->updateYlocation(this->forceFixedFrameRate ? this->frameDuration : FIXED_DRAW_INTERVAL);
+        this->camera->updateYlocation(this->frameDuration);
 
         this->state->render();
 
@@ -186,56 +186,68 @@ void Game::addKeyEvent(const SDL_Scancode key) {
     else hit->second->fetch_add(1);
 }
 
-void Game::removeKeyEvent(const SDL_Scancode key) {
+void Game::removeKeyEvent(const SDL_Scancode key, const bool moreThanOne) {
     std::map<SDL_Scancode, std::atomic<int> *>::iterator hit(this->keys.find(key));
-    if (hit != this->keys.end()) *hit->second = 0;
+    if (hit != this->keys.end()) {
+        if (moreThanOne && *hit->second == 1) return;
+        *hit->second = 0;
+    }
 }
 
 void Game::processEvents() {
     for (auto & k : this->keys) {
         if (*k.second == 0) continue;
 
+        bool removeKeyEvent = false;
+
         switch (k.first) {
             case SDL_SCANCODE_G:
-                if (*k.second == 1) {
-                    k.second->fetch_add(1);
-                    this->world->toggleGravity();
-                    this->camera->setJumpFrameCounter(-4);
-                };
+                this->world->toggleGravity();
+                this->camera->setJumpFrameCounter(-4);
+                removeKeyEvent = true;
                 break;
             case SDL_SCANCODE_Q:
                 this->quit = true;
+                removeKeyEvent = true;
                 break;
             case SDL_SCANCODE_F:
-                if (*k.second == 1) {
-                    k.second->fetch_add(1);
-                    this->wireframe = !this->wireframe;
-                    glPolygonMode(GL_FRONT_AND_BACK, this->wireframe ? GL_LINE : GL_FILL);
-                }
+                this->wireframe = !this->wireframe;
+                glPolygonMode(GL_FRONT_AND_BACK, this->wireframe ? GL_LINE : GL_FILL);
+                removeKeyEvent = true;
                 break;
             case SDL_SCANCODE_KP_PLUS:
                 this->world->setAmbientLightFactor(this->world->getAmbientLight().x + 0.1);
+                k.second->fetch_add(1);
                 break;
             case SDL_SCANCODE_KP_MINUS:
                 this->world->setAmbientLightFactor(this->world->getAmbientLight().x - 0.1);
+                k.second->fetch_add(1);
                 break;
             case SDL_SCANCODE_KP_MULTIPLY:
                 this->world->setSunLightStrength(this->world->getSunLightColor().x + 0.1);
+                k.second->fetch_add(1);
                 break;
             case SDL_SCANCODE_KP_DIVIDE:
                 this->world->setSunLightStrength(this->world->getSunLightColor().x - 0.1);
+                k.second->fetch_add(1);
                 break;
             case SDL_SCANCODE_SPACE:
-                if (*k.second == 1) {
-                    k.second->fetch_add(1);
-                    if (!this->world->hasGravity() || !this->camera->isOffGround())
-                        this->camera->startJumpFrameCounter();
-                };
+                if (!this->world->hasGravity() || !this->camera->isOffGround()) {
+                    if (this->world->hasGravity()) {
+                        if (*k.second > 1) break;
+                        k.second->fetch_add(1);
+                    } else removeKeyEvent = true;
+                    this->camera->startJumpFrameCounter();
+                }
                 break;
             default:
-                if (SDL_GetRelativeMouseMode() == SDL_TRUE)
+                if (SDL_GetRelativeMouseMode() == SDL_TRUE) {
                     this->camera->updateLocation(k.first, static_cast<float>(FIXED_DRAW_INTERVAL * 2.5));
+                    k.second->fetch_add(1);
+                }
         }
+
+        if (removeKeyEvent) this->removeKeyEvent(k.first);
     }
 }
 

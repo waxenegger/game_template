@@ -101,7 +101,7 @@ void Camera::updateYlocation(const float frameDuration) {
     if (this->jumpFrameCounter > 0) this->position.y += frameDuration  * JUMP_FACTOR * this->jumpFrameCounter;
 
     if (World::instance()->hasGravity())
-        this->position.y -= frameDuration * GRAVITY * static_cast<float>(glm::pow(this->jumpFrameCounter, 2));
+        this->position.y -= frameDuration * 0.5 * GRAVITY * static_cast<float>(glm::pow(this->jumpFrameCounter, 2));
     else this->jumpFrameCounter = -1;
 
     if (this->position.y < 7.0f) {

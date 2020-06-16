@@ -9,8 +9,8 @@ static const int DEFAULT_HEIGHT = 480;
 
 static const Uint32 FIXED_DRAW_INTERVAL = 17;
 
-static const float JUMP_FACTOR = 0.1;
-static const float GRAVITY = 0.01f;
+static const float JUMP_FACTOR = 0.15;
+static const float GRAVITY = 0.04f;
 
 static const int NUM_SHADERS = 2;
 static const std::string DEFAULT_VERTEX_SHADER =

@@ -48,7 +48,7 @@ class Game {
         void createTestModels();
 
         void addKeyEvent(const SDL_Scancode key);
-        void removeKeyEvent(const SDL_Scancode key);
+        void removeKeyEvent(const SDL_Scancode key, const bool moreThanOne = false);
         void processEvents();
         static std::map<std::string, std::shared_ptr<Texture>> TEXTURES;
 };
