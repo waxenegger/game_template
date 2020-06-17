@@ -78,7 +78,7 @@ bool Game::init() {
 }
 
 void Game::run() {
-    SDL_SetRelativeMouseMode(SDL_FALSE);
+    SDL_SetRelativeMouseMode(SDL_TRUE);
     glPolygonMode(GL_FRONT_AND_BACK, this->wireframe ? GL_LINE : GL_FILL);
 
     this->clearScreen(0, 0, 0, 1);
@@ -114,7 +114,7 @@ void Game::run() {
                         this->camera->setFieldOfViewY(newFovy);
                         this->camera->setPerspective(
                                 glm::perspective(glm::radians(this->camera->getFieldOfViewY()),
-                                        this->getAspectRatio(), 0.01f, 1000.0f));
+                                        this->getAspectRatio(), 0.01f, 100000.0f));
                         break;
                     }
                     case SDL_WINDOWEVENT:
@@ -122,7 +122,7 @@ void Game::run() {
                             this->resize(e.window.data1, e.window.data2);
                             this->camera->setPerspective(
                                     glm::perspective(glm::radians(this->camera->getFieldOfViewY()),
-                                            this->getAspectRatio(), 0.01f, 1000.0f));
+                                            this->getAspectRatio(), 0.01f, 10000.0f));
                         }
                         break;
 
