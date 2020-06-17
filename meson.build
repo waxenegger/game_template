@@ -44,7 +44,7 @@ else
 
 endif
 
-src = [ 'world.cpp', 'camera.cpp', 'mesh.cpp', 'terrain.cpp', 'model.cpp', 
+src = [ 'world.cpp', 'camera.cpp', 'mesh.cpp', 'terrain.cpp', 'skybox.cpp', 'model.cpp', 
 		'entity.cpp', 'shader.cpp', 'factory.cpp', 'image.cpp', 'group.cpp', 'state.cpp' ]
 
 executable('game', 'game.cpp', src, include_directories: includeDir, dependencies: dependencies) 

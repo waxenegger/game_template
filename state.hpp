@@ -20,6 +20,7 @@ class GameState {
         std::string root = "";
         std::map<std::string, RenderableGroup *> scene;
         Terrain * terrain = nullptr;
+        SkyBox * sky = nullptr;
 
     public:
         GameState(std::string & root);

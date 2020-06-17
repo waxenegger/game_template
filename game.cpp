@@ -78,7 +78,7 @@ bool Game::init() {
 }
 
 void Game::run() {
-    SDL_SetRelativeMouseMode(SDL_TRUE);
+    SDL_SetRelativeMouseMode(SDL_FALSE);
     glPolygonMode(GL_FRONT_AND_BACK, this->wireframe ? GL_LINE : GL_FILL);
 
     this->clearScreen(0, 0, 0, 1);

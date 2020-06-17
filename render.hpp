@@ -176,7 +176,7 @@ class Texture {
         void setPath(const std::string & path) {
             this->path = path;
         }
-        void cleanUp() {
+    void cleanUp() {
             glDeleteTextures(1, &this->id);
         }
         void load() {
@@ -344,7 +344,28 @@ class Renderable {
         }
 };
 
-class Terrain : public Renderable {
+class SkyBox {
+    private:
+        bool initialized = false;
+        unsigned int textureId = 0;
+        std::string dir;
+        std::string texture;
+        std::vector<std::unique_ptr<Texture>> textures;
+        Shader * shader = nullptr;
+        GLuint skyVAO = 0, skyVBO = 0;
+    public:
+        SkyBox(const SkyBox&) = delete;
+        SkyBox& operator=(const SkyBox&) = delete;
+        SkyBox(SkyBox&&) noexcept = default;
+        SkyBox& operator=(SkyBox&&) noexcept = default;
+
+        SkyBox(const std::string & dir, const std::string & texture);
+        void init();
+        void render();
+        void cleanUp();
+};
+
+class Terrain : Renderable {
     private:
         std::string dir;
         Mesh mesh;

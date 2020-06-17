@@ -7,12 +7,16 @@ GameState::GameState(std::string & root) {
 void GameState::init() {
     this->terrain = new Terrain(this->root);
     this->terrain->init();
+    this->sky = new SkyBox(this->root, "sky");
+    this->sky->init();
 }
 
 void GameState::render() {
     if (this->terrain != nullptr) this->terrain->render();
 
     for (auto & sceneEntry : this->scene) sceneEntry.second->render();
+
+    if (this->sky != nullptr) this->sky->render();
 }
 
 void GameState::addRenderable(Renderable * renderable) {
@@ -33,6 +37,11 @@ GameState::~GameState() {
     }
 
     for (auto & sceneEntry : this->scene) delete sceneEntry.second;
+
+    if (this->sky != nullptr) {
+        this->sky->cleanUp();
+        if (this->sky != nullptr) delete this->sky;
+    }
 
     this->scene.clear();
 }
