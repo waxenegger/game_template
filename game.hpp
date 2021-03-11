@@ -12,13 +12,7 @@ class Game {
         int width = DEFAULT_WIDTH;
         int height = DEFAULT_HEIGHT;
 
-        bool forceFixedFrameRate = true;
-        Uint32 frameDrawn = 0;
-        Uint32 frameDuration = 0;
-
         bool wireframe = false;
-
-        std::map<SDL_Scancode, std::atomic<int> *> keys;
 
         bool quit = false;
 
@@ -33,7 +27,6 @@ class Game {
         Camera * camera = Camera::instance(-5.0f, 7.0f, -5.0f);
 
         void clearScreen(float r, float g, float b, float a);
-        void render();
         void cleanUp();
 
     public:
@@ -46,10 +39,6 @@ class Game {
         float getLastFrameDuration() const;
         virtual ~Game();
         void createTestModels();
-
-        void addKeyEvent(const SDL_Scancode key);
-        void removeKeyEvent(const SDL_Scancode key, const bool moreThanOne = false);
-        void processEvents();
         static std::map<std::string, std::shared_ptr<Texture>> TEXTURES;
 };
 

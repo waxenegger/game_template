@@ -9,8 +9,8 @@ static const int DEFAULT_HEIGHT = 480;
 
 static const Uint32 FIXED_DRAW_INTERVAL = 17;
 
-static const float JUMP_FACTOR = 0.15;
-static const float GRAVITY = 0.04f;
+static const float JUMP_FACTOR = 1.5;
+static const float GRAVITY = 0.2f;
 
 static const int NUM_SHADERS = 2;
 static const std::string DEFAULT_VERTEX_SHADER =
@@ -369,6 +369,8 @@ class Terrain : Renderable {
     private:
         std::string dir;
         Mesh mesh;
+        unsigned int textureId = 0;
+        std::vector<std::unique_ptr<Texture>> textures;
         std::string id = this->generateRendarableID();
     public:
         Terrain(const Terrain&) = delete;
@@ -482,8 +484,6 @@ class ModelFactory final {
 class Camera final {
     private:
 		static Camera * singleton;
-        const float SENSITIVITY_DIRECTION_CHANGE = 0.0005f;
-        const float SENSITIVITY_POSITION_CHANGE = 0.05f;
 
         int jumpFrameCounter = -1;
 

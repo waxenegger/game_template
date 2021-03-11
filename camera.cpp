@@ -36,10 +36,10 @@ glm::mat4 Camera::getPerspective() {
 void Camera::updateDirection(const float deltaX, const float  deltaY, const float frameDuration) {
 
     this->pitch = glm::asin(this->getDirection().y) -
-        deltaY * SENSITIVITY_DIRECTION_CHANGE * frameDuration;
+        deltaY * frameDuration / 1000;
 
     this->yaw = glm::atan(this->getDirection().z, this->getDirection().x) +
-        deltaX * SENSITIVITY_DIRECTION_CHANGE * frameDuration;
+        deltaX * frameDuration / 1000;
 
     const float ninetyDegrees = glm::pi<float>() / 2;
     if (glm::abs(this->pitch) == 0.0f) this->pitch = 0.000001f;
@@ -56,7 +56,7 @@ void Camera::updateDirection(const float deltaX, const float  deltaY, const floa
 void Camera::updateLocation(const SDL_Scancode & direction, const float frameDuration) {
     if (direction != SDL_SCANCODE_A && direction != SDL_SCANCODE_W && direction != SDL_SCANCODE_D && direction != SDL_SCANCODE_S) return;
 
-    const float speedFactor = SENSITIVITY_POSITION_CHANGE * frameDuration;
+    const float speedFactor = 1 * frameDuration;
 
     this->pitch = glm::asin(this->getDirection().y);
     this->yaw = glm::atan(this->getDirection().z, this->getDirection().x);
@@ -101,7 +101,7 @@ void Camera::updateYlocation(const float frameDuration) {
     if (this->jumpFrameCounter > 0) this->position.y += frameDuration  * JUMP_FACTOR * this->jumpFrameCounter;
 
     if (World::instance()->hasGravity())
-        this->position.y -= frameDuration * 0.5 * GRAVITY * static_cast<float>(glm::pow(this->jumpFrameCounter, 2));
+        this->position.y -= frameDuration * GRAVITY * static_cast<float>(glm::pow(this->jumpFrameCounter, 2));
     else this->jumpFrameCounter = -1;
 
     if (this->position.y < 7.0f) {

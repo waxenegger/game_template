@@ -17,7 +17,10 @@ Terrain::Terrain(const std::string & dir) {
             this->mesh.vertices.push_back(Vertex(glm::vec3(row, randHeight, col)));
         }
     }
+
     unsigned int i = 0;
+    float u=0.0f;
+    float v=0.0f;
     for (int row=start;row<end-step;row+=step) {
         unsigned int j = 0;
         for (int col=start;col<end-step;col+=step) {
@@ -45,16 +48,79 @@ Terrain::Terrain(const std::string & dir) {
                     this->mesh.vertices[vertexIndexUp].position.y);
             this->mesh.vertices[vertexIndex].normal = glm::normalize(norm);
 
+            this->mesh.vertices[vertexIndex].uv = glm::vec2(u, v);
+            v += 0.005;
+            if (v > 1.0) v = 0.0f;
             j++;
         }
+        u += 0.005;
+        if (u > 1.0) u = 0.0f;
         i++;
     }
 }
 
 void Terrain::init() {
+    if (this->initialized) return;
+
+    this->useShader(new Shader(this->dir + "/res/shaders/terrain"));
+
+    std::vector<std::string> texNames = {
+            "/res/models/grass.png"
+    };
+
+    for (auto & t : texNames) {
+        std::string f(this->dir + t);
+        std::unique_ptr<Texture> tex(new Texture());
+        tex->setType(Model::DIFFUSE_TEXTURE);
+        tex->setPath(f);
+        tex->load();
+        if (tex->isValid()) this->textures.push_back(std::move(tex));
+        else {
+            std::cerr << "Failed to load terrain texture: " + f << std::endl;
+            return;
+        }
+    }
+
+    glGenTextures(1, &this->textureId);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, this->textureId);
+
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    GLfloat color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, color);
+
+    int c = 0;
+    for (auto & tex : this->textures) {
+        GLenum imageFormat;
+           if (!Texture::findImageFormat(tex->getTextureSurface(), &imageFormat)) {
+               std::cerr << "Unsupported Image Format: " << std::endl;
+               return;
+           }
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex->getTextureSurface()->w, tex->getTextureSurface()->h, 0,
+                        imageFormat, GL_UNSIGNED_BYTE, tex->getTextureSurface()->pixels);
+        c++;
+    }
+
+    /*glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA, 100, 100, this->textures.size());
+
+    int c = 0;
+    for (auto & tex : this->textures) {
+        std::cout << tex->getTextureSurface()->w << "x" << tex->getTextureSurface()->w << std::endl;
+        glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
+                0, 0, 0, c,
+                tex->getTextureSurface()->w, tex->getTextureSurface()->h, 1,
+                GL_RGBA, GL_UNSIGNED_BYTE, tex->getTextureSurface()->pixels);
+        c++;
+    }*/
+
     this->mesh.init();
 
-    this->setColor(0.0f, 1.0f, 0.0f, 1.0f);
+    this->setColor(1.0f, 1.0f, 1.0f, 1.0f);
     std::vector<Material> materials;
     materials.push_back(this->getMaterial());
     this->setMaterials(materials);
@@ -78,7 +144,14 @@ void Terrain::render() {
         this->shader->setVec3("sunDirection", World::instance()->getSunDirection());
         this->shader->setVec3("sunLightColor", World::instance()->getSunLightColor());
         this->shader->setVec3("eyePosition", Camera::instance()->getPosition());
+
         //shader->dumpActiveShaderAttributes();
+        if (this->textures.size() > 0) {
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, this->textureId);
+            this->shader->setInt("has_texture", 1);
+            this->shader->setInt("textureArray", 0);
+        } else this->shader->setInt("has_texture", 0);
 
         this->mesh.render(this->shader);
 
@@ -97,6 +170,7 @@ void Terrain::setModelMatrices(std::vector<glm::mat4> & modelMatrices) {
 void Terrain::cleanUp() {
     if (!this->initialized) return;
 
+    glDeleteTextures(1, &this->textureId);
     this->mesh.cleanUp();
 
     this->initialized = false;

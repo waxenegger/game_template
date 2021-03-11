@@ -37,7 +37,6 @@ bool Game::init() {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-        SDL_GL_SetSwapInterval(1);
 
         window = SDL_CreateWindow("Game", SDL_WINDOWPOS_UNDEFINED,
                 SDL_WINDOWPOS_UNDEFINED, this->width, this->height,
@@ -85,170 +84,110 @@ void Game::run() {
 
     this->createTestModels();
 
-    std::thread eventLoop([this]() {
-        SDL_Event e;
+    SDL_Event e;
+    SDL_StartTextInput();
 
-        SDL_StartTextInput();
+    Uint32 previousTime = SDL_GetTicks();
 
-        while (!this->quit) {
-            while (SDL_PollEvent(&e) != 0) {
-                switch(e.type) {
-                    case SDL_MOUSEBUTTONUP:
-                        SDL_SetRelativeMouseMode(SDL_GetRelativeMouseMode() == SDL_TRUE ? SDL_FALSE : SDL_TRUE);
-                        break;
+    while (!quit) {
+        const Uint32 currentTime = SDL_GetTicks();
+        const Uint32 elapsed = currentTime - previousTime;
+        previousTime = currentTime;
 
-                    case SDL_MOUSEMOTION:
-                        if (SDL_GetRelativeMouseMode() == SDL_TRUE)
-                            this->camera->updateDirection(
-                                    static_cast<float>(e.motion.xrel),
-                                    static_cast<float>(e.motion.yrel),
-                                    static_cast<float>(FIXED_DRAW_INTERVAL));
-                        break;
+        while (SDL_PollEvent(&e) != 0) {
+            switch(e.type) {
+                case SDL_MOUSEBUTTONUP:
+                    SDL_SetRelativeMouseMode(SDL_GetRelativeMouseMode() == SDL_TRUE ? SDL_FALSE : SDL_TRUE);
+                    break;
 
-                    case SDL_MOUSEWHEEL:
-                    {
-                        const Sint32 delta = e.wheel.y * (e.wheel.direction == SDL_MOUSEWHEEL_NORMAL ? 1 : -1);
-                        float newFovy = this->camera->getFieldOfViewY() - delta * 2;
-                        if (newFovy < 1) newFovy = 1;
-                        else if (newFovy > 45) newFovy = 45;
-                        this->camera->setFieldOfViewY(newFovy);
+                case SDL_MOUSEMOTION:
+                    if (SDL_GetRelativeMouseMode() == SDL_TRUE)
+                        this->camera->updateDirection(
+                                static_cast<float>(e.motion.xrel),
+                                static_cast<float>(e.motion.yrel),
+                                static_cast<float>(elapsed / FIXED_DRAW_INTERVAL));
+                    break;
+
+                case SDL_MOUSEWHEEL:
+                {
+                    const Sint32 delta = e.wheel.y * (e.wheel.direction == SDL_MOUSEWHEEL_NORMAL ? 1 : -1);
+                    float newFovy = this->camera->getFieldOfViewY() - delta * 2;
+                    if (newFovy < 1) newFovy = 1;
+                    else if (newFovy > 45) newFovy = 45;
+                    this->camera->setFieldOfViewY(newFovy);
+                    this->camera->setPerspective(
+                            glm::perspective(glm::radians(this->camera->getFieldOfViewY()),
+                                    this->getAspectRatio(), 0.01f, 100000.0f));
+                    break;
+                }
+                case SDL_WINDOWEVENT:
+                    if(e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+                        this->resize(e.window.data1, e.window.data2);
                         this->camera->setPerspective(
                                 glm::perspective(glm::radians(this->camera->getFieldOfViewY()),
-                                        this->getAspectRatio(), 0.01f, 100000.0f));
-                        break;
+                                        this->getAspectRatio(), 0.01f, 10000.0f));
                     }
-                    case SDL_WINDOWEVENT:
-                        if(e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
-                            this->resize(e.window.data1, e.window.data2);
-                            this->camera->setPerspective(
-                                    glm::perspective(glm::radians(this->camera->getFieldOfViewY()),
-                                            this->getAspectRatio(), 0.01f, 10000.0f));
-                        }
-                        break;
+                    break;
 
-                    case SDL_QUIT:
-                        quit = true;
-                        break;
+                case SDL_QUIT:
+                    quit = true;
+                    break;
 
-                    case SDL_KEYDOWN:
-                        this->addKeyEvent(e.key.keysym.scancode);
-                        break;
-
-                    case SDL_KEYUP:
-                        this->removeKeyEvent(e.key.keysym.scancode, true);
-                        break;
-                }
+                case SDL_KEYDOWN:
+                    switch (e.key.keysym.scancode) {
+                        case SDL_SCANCODE_G:
+                            this->world->toggleGravity();
+                            this->camera->setJumpFrameCounter(-4);
+                            break;
+                        case SDL_SCANCODE_Q:
+                            this->quit = true;
+                            break;
+                        case SDL_SCANCODE_F:
+                            this->wireframe = !this->wireframe;
+                            glPolygonMode(GL_FRONT_AND_BACK, this->wireframe ? GL_LINE : GL_FILL);
+                            break;
+                        case SDL_SCANCODE_KP_PLUS:
+                            this->world->setAmbientLightFactor(this->world->getAmbientLight().x + 0.1);
+                            break;
+                        case SDL_SCANCODE_KP_MINUS:
+                            this->world->setAmbientLightFactor(this->world->getAmbientLight().x - 0.1);
+                            break;
+                        case SDL_SCANCODE_KP_MULTIPLY:
+                            this->world->setSunLightStrength(this->world->getSunLightColor().x + 0.1);
+                            break;
+                        case SDL_SCANCODE_KP_DIVIDE:
+                            this->world->setSunLightStrength(this->world->getSunLightColor().x - 0.1);
+                            break;
+                        case SDL_SCANCODE_SPACE:
+                            if (!this->camera->isOffGround()) {
+                                this->camera->startJumpFrameCounter();
+                            } else this->camera->updateYlocation(elapsed / FIXED_DRAW_INTERVAL);
+                            break;
+                        default:
+                            if (SDL_GetRelativeMouseMode() == SDL_TRUE) {
+                                this->camera->updateLocation(e.key.keysym.scancode, static_cast<float>(elapsed / FIXED_DRAW_INTERVAL));
+                            }
+                            break;
+                    }
+                    break;
             }
         }
 
-        SDL_StopTextInput();
-    });
+        this->camera->updateYlocation(elapsed / FIXED_DRAW_INTERVAL);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        this->state->render();
+        SDL_GL_SwapWindow(window);
+    }
 
-    while (!quit) this->render();
-
-    eventLoop.join();
+    SDL_StopTextInput();
 }
+
 
 void Game::clearScreen(float r, float g, float b, float a) {
     glViewport(0,0,(GLsizei)this->width,(GLsizei)this->height);
     glClearColor(r, g, b, a);
     glClearDepthf(1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-}
-
-void Game::render() {
-    const Uint32 currentTime = SDL_GetTicks();
-    const Uint32 diff = this->forceFixedFrameRate ? (currentTime - this->frameDrawn) : 0;
-
-    this->processEvents();
-
-    if (diff == 0 || diff > FIXED_DRAW_INTERVAL) {
-        const Uint32 frameStart = SDL_GetTicks();
-        glViewport(0,0,(GLsizei)this->width,(GLsizei)this->height);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        this->camera->updateYlocation(this->frameDuration);
-
-        this->state->render();
-
-        SDL_GL_SwapWindow(window);
-
-        this->frameDrawn = SDL_GetTicks();
-        this->frameDuration = this->frameDrawn - frameStart;
-    }
-}
-
-void Game::addKeyEvent(const SDL_Scancode key) {
-    std::map<SDL_Scancode, std::atomic<int> *>::iterator hit(this->keys.find(key));
-
-    if (hit == this->keys.end())
-        this->keys[key] =  std::move(new std::atomic<int>(1));
-    else hit->second->fetch_add(1);
-}
-
-void Game::removeKeyEvent(const SDL_Scancode key, const bool moreThanOne) {
-    std::map<SDL_Scancode, std::atomic<int> *>::iterator hit(this->keys.find(key));
-    if (hit != this->keys.end()) {
-        if (moreThanOne && *hit->second == 1) return;
-        *hit->second = 0;
-    }
-}
-
-void Game::processEvents() {
-    for (auto & k : this->keys) {
-        if (*k.second == 0) continue;
-
-        bool removeKeyEvent = false;
-
-        switch (k.first) {
-            case SDL_SCANCODE_G:
-                this->world->toggleGravity();
-                this->camera->setJumpFrameCounter(-4);
-                removeKeyEvent = true;
-                break;
-            case SDL_SCANCODE_Q:
-                this->quit = true;
-                removeKeyEvent = true;
-                break;
-            case SDL_SCANCODE_F:
-                this->wireframe = !this->wireframe;
-                glPolygonMode(GL_FRONT_AND_BACK, this->wireframe ? GL_LINE : GL_FILL);
-                removeKeyEvent = true;
-                break;
-            case SDL_SCANCODE_KP_PLUS:
-                this->world->setAmbientLightFactor(this->world->getAmbientLight().x + 0.1);
-                k.second->fetch_add(1);
-                break;
-            case SDL_SCANCODE_KP_MINUS:
-                this->world->setAmbientLightFactor(this->world->getAmbientLight().x - 0.1);
-                k.second->fetch_add(1);
-                break;
-            case SDL_SCANCODE_KP_MULTIPLY:
-                this->world->setSunLightStrength(this->world->getSunLightColor().x + 0.1);
-                k.second->fetch_add(1);
-                break;
-            case SDL_SCANCODE_KP_DIVIDE:
-                this->world->setSunLightStrength(this->world->getSunLightColor().x - 0.1);
-                k.second->fetch_add(1);
-                break;
-            case SDL_SCANCODE_SPACE:
-                if (!this->world->hasGravity() || !this->camera->isOffGround()) {
-                    if (this->world->hasGravity()) {
-                        if (*k.second > 1) break;
-                        k.second->fetch_add(1);
-                    } else removeKeyEvent = true;
-                    this->camera->startJumpFrameCounter();
-                }
-                break;
-            default:
-                if (SDL_GetRelativeMouseMode() == SDL_TRUE) {
-                    this->camera->updateLocation(k.first, static_cast<float>(FIXED_DRAW_INTERVAL * 2.5));
-                    k.second->fetch_add(1);
-                }
-        }
-
-        if (removeKeyEvent) this->removeKeyEvent(k.first);
-    }
 }
 
 float Game::getAspectRatio() const {
@@ -263,18 +202,11 @@ void Game::resize(int width, int height) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-float Game::getLastFrameDuration() const {
-    return (float) this->frameDuration / 1000.0f;
-}
-
 Game::~Game() {
     if (this->camera != nullptr) delete this->camera;
     if (this->world != nullptr) delete this->world;
     if (this->factory != nullptr) delete this->factory;
     if (this->state != nullptr) delete this->state;
-
-    for (auto & k : this->keys) delete k.second;
-    this->keys.clear();
 
     cleanUp();
 }
@@ -284,26 +216,27 @@ void Game::createTestModels() {
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 
-    Model * sunModel(this->factory->createModel("/res/models/sun.obj"));
+    Model * sunModel(this->factory->createModel("/res/models/woodden-giraffe.obj"));
+    sunModel->useNormalsTexture(true);
     if (sunModel != nullptr && sunModel->hasBeenLoaded()) {
         glm::vec3 sunPos = World::instance()->getSunDirection();
-        for (int j=0;j<1000;j++) {
+        for (int j=0;j<50;j++) {
             Entity * sun = new Entity(sunModel);
             sun->setColor(1.0f, 1.0f, 0.0f, 1.0f);
-            sunPos.x += 20;
+            sunPos.x += 50;
             if (j % 100 == 0) {
                 sunPos.x = World::instance()->getSunDirection().x;
-                sunPos.z += 20;
+                sunPos.z += 50;
             }
             sun->setPosition(sunPos);
-            sun->setScaleFactor(1.0f);
+            sun->setScaleFactor(10.0f);
             this->state->addRenderable(sun);
         }
     }
 
     Model * teapotModel(this->factory->createModel("/res/models/teapot.obj"));
     if (teapotModel != nullptr && teapotModel->hasBeenLoaded()) {
-        for (int j=0;j<10;j++) {
+        for (int j=0;j<1000;j++) {
             Entity * teapot = new Entity(teapotModel);
             teapot->setColor(1.0f, 1.0f, 1.0f, 1.0);
             teapot->setPosition(4.0f + 10*j, 0.0f, -15.0f);
@@ -313,9 +246,9 @@ void Game::createTestModels() {
         }
     }
 
-    Model * nanosuitModel(this->factory->createModel("/res/models/nanosuit.obj"));
+    Model * nanosuitModel(this->factory->createModel("/res/models/cyborg.obj"));
     if (nanosuitModel != nullptr && nanosuitModel->hasBeenLoaded()) {
-        for (int j=0;j<10;j++) {
+        for (int j=0;j<20000;j++) {
             Entity * nanosuit = new Entity(nanosuitModel);
             nanosuit->useShader(new Shader(this->root + "/res/shaders/textures"));
             nanosuit->setColor(1.0f,1.0f,1.0f,1.0f);
@@ -360,4 +293,3 @@ int main(int argc, char **argv) {
 
     return 0;
 }
-
